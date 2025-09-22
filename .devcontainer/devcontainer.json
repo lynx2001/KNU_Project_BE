@@ -1,0 +1,32 @@
+{
+    "name": "econAgent (web)",
+    "dockerComposeFile": ["../docker-compose.yml"],
+    "service": "web",
+    "workspaceFolder": "/app",
+    "overrideCommand": false,
+  
+    // 컨테이너 안에서 VS Code가 편하게 쓰도록 몇 가지 옵션
+    "customizations": {
+      "vscode": {
+        "extensions": [
+          "ms-python.python",
+          "ms-python.vscode-pylance",
+          "ms-azuretools.vscode-docker",
+          "ms-vscode-remote.remote-containers"
+        ],
+        "settings": {
+          "python.defaultInterpreterPath": "/usr/local/bin/python",
+          "python.analysis.typeCheckingMode": "basic",
+          // 컨테이너 Python를 우선
+          "python.testing.pytestEnabled": false
+        }
+      }
+    },
+  
+    // 컨테이너 처음 만들 때 한 번 실행 (선택)
+    "postCreateCommand": "python -m pip install --upgrade pip && pip install -r requirements.txt",
+  
+    // 필요 시 포트 포워딩
+    "forwardPorts": [8000, 3306]
+  }
+  
