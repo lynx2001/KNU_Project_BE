@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     "article",
     "summary",
     "quiz",
+    "term",
 ]
 
 MIDDLEWARE = [
