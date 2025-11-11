@@ -2,10 +2,13 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
 from .serializers import UserSignupSerializer, UserProfileSerializer
-from .models import User
-from django.shortcuts import render
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 class UserSignupView(APIView):
+    permission_classes = [permissions.AllowAny]
+
     def post(self, request):
         serializer = UserSignupSerializer(data=request.data)
         if serializer.is_valid():
