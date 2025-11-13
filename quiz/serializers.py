@@ -1,16 +1,12 @@
-# quiz/serializers.py
-
 from rest_framework import serializers
 from .models import (
     OXQuiz, ShortAnswerQuiz, MultipleChoiceQuiz, QuizOption, UserQuizAnswer
 )
 
-# --- 조회용 (Read) Serializers ---
-
 class QuizOptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = QuizOption
-        fields = ["id", "text", "order"] # is_correct 필드는 정답이므로 숨김
+        fields = ["id", "text", "order"]
 
 class OXQuizSerializer(serializers.ModelSerializer):
     quiz_type = serializers.CharField(default="OX", read_only=True)
@@ -76,10 +72,9 @@ class MultipleChoiceQuizCreateSerializer(serializers.ModelSerializer):
 # --- 모든 퀴즈 생성 요청을 받아 분배하는 Serializer ---
 
 class QuizCreateSerializer(serializers.Serializer):
-    quiz_type = serializers.ChoiceField(choices=["OX", "SC", "MC4"]) # MC3, MC5 -> MC4
+    quiz_type = serializers.ChoiceField(choices=["OX", "SC", "MC4"])
     
-    # 모든 유형의 필드를 allow_null=True로 받음 (유효성 검사는 각자 시리얼라이저에서)
-    summary = serializers.IntegerField() # 실제로는 PrimaryKeyRelatedField 등이 더 적합
+    summary = serializers.IntegerField()
     question = serializers.CharField()
     explanation = serializers.CharField(required=False, allow_blank=True)
     correct_answer_bool = serializers.BooleanField(required=False, allow_null=True)

@@ -10,5 +10,3 @@ class TermViewSet(viewsets.ModelViewSet):
 
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ["term", "meaning"]
-    #ordering_fields = ["created_at", "title", "journal", "id"]
-    #ordering = ["-created_at"]

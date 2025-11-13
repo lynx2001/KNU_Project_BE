@@ -1,6 +1,6 @@
 from django.db import models
 from article.models import Article
-from term.models import Term  # 1. Term 모델 추가
+from term.models import Term
 
 class SummaryGroup(models.Model):
     date = models.DateField()
@@ -28,8 +28,8 @@ class Summary(models.Model):
     )
     terms = models.ManyToManyField(
         Term,
-        related_name="summaries",  # Term 입장에서 .summaries로 Summary 목록을 가져올 수 있습니다.
-        blank=True                 # 요약에 연결된 용어가 없을 수도 있습니다.
+        related_name="summaries",
+        blank=True
     )
 
     class Meta:

@@ -1,5 +1,3 @@
-# quiz/models.py
-
 from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericForeignKey
@@ -13,7 +11,8 @@ class BaseQuiz(models.Model):
     summary = models.ForeignKey(
         Summary,
         on_delete=models.CASCADE,
-        related_name="%(class)s_quizzes", # OXQuiz -> summary.oxquiz_quizzes
+        related_name="%(class)s_quizzes", 
+        # OXQuiz -> summary.oxquiz_quizzes
         # ShortAnswerQuiz -> summary.shortanswerquiz_quizzes
         # MultipleChoiceQuiz -> summary.multiplechoicequiz_quizzes
         null=True, # 임시 !!! (지우자)
@@ -51,16 +50,14 @@ class ShortAnswerQuiz(BaseQuiz):
 
 
 class MultipleChoiceQuiz(BaseQuiz):
-    # --- 여기부터 수정 ---
-    TYPE_MC4 = 4 # MC3, MC5 대신 MC4 정의
+    TYPE_MC4 = 4
     TYPE_CHOICES = [
-        (TYPE_MC4, "Multiple Choice (4)"), # 선택지를 MC4로 변경
+        (TYPE_MC4, "Multiple Choice (4)"),
     ]
     choice_type = models.PositiveSmallIntegerField(
         choices=TYPE_CHOICES,
-        default=TYPE_MC4 # 기본값을 MC4로 변경
+        default=TYPE_MC4
     )
-    # --- 여기까지 수정 ---
 
     class Meta:
         db_table = "quiz_multiple_choice"
@@ -90,7 +87,6 @@ class QuizOption(models.Model):
 class UserQuizAnswer(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     
-    # GenericForeignKey를 사용하여 모든 종류의 퀴즈 모델을 참조합니다.
     content_type = models.ForeignKey(ContentType, 
                                      on_delete=models.CASCADE,
                                      limit_choices_to=Q(app_label='quiz', model='oxquiz') | 
@@ -100,7 +96,6 @@ class UserQuizAnswer(models.Model):
     object_id = models.PositiveIntegerField()
     quiz = GenericForeignKey('content_type', 'object_id')
 
-    # 답변 필드들
     ox_answer = models.BooleanField(null=True, blank=True)
     selected_option = models.ForeignKey(QuizOption, on_delete=models.SET_NULL, null=True, blank=True)
     text_answer = models.CharField(max_length=255, blank=True)
@@ -109,7 +104,6 @@ class UserQuizAnswer(models.Model):
 
     class Meta:
         db_table = "user_quiz_answer"
-        # 한 사용자는 특정 퀴즈(어떤 타입이든)에 대해 하나의 답변만 가집니다.
         unique_together = ("user", "content_type", "object_id")
 
     def __str__(self):

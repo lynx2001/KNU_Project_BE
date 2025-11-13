@@ -41,7 +41,6 @@ class QuizCreateAPIView(APIView):
         if serializer.is_valid():
             quiz_instance = serializer.save()
             
-            # 생성된 객체의 유형에 맞는 시리얼라이저로 응답 데이터를 만듭니다.
             if isinstance(quiz_instance, OXQuiz):
                 response_serializer = OXQuizSerializer(quiz_instance)
             elif isinstance(quiz_instance, ShortAnswerQuiz):
