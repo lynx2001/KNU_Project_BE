@@ -9,6 +9,6 @@ class ArticleViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ["title", "content", "author", "journal", "url"]
-    ordering_fields = ["created_at", "title", "journal", "id"]
+    search_fields = ["title", "content", "author", "journal", "created_at"] #/article/?search=django
+    ordering_fields = ["created_at", "title", "journal", "id"] #/article/?ordering=title #/article/?ordering=-journal
     ordering = ["-created_at"]

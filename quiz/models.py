@@ -71,12 +71,12 @@ class MultipleChoiceQuiz(BaseQuiz):
 
 class QuizOption(models.Model):
     quiz = models.ForeignKey(
-        MultipleChoiceQuiz, # 이제 객관식 퀴즈만 참조합니다.
+        MultipleChoiceQuiz,
         on_delete=models.CASCADE,
         related_name="options",
     )
     text = models.CharField(max_length=255)
-    is_correct = models.BooleanField(default=False) # 정답 여부를 여기에 저장합니다.
+    is_correct = models.BooleanField(default=False)
     order = models.PositiveSmallIntegerField(default=1)
 
     class Meta:
