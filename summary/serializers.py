@@ -16,7 +16,8 @@ class SummarySerializer(serializers.ModelSerializer):
         return value
 
 class SummaryGroupSerializer(serializers.ModelSerializer):
-    summaries = SummaryGroup
+    summaries = SummarySerializer(many=True, read_only=True)
     
     class Meta:
+        model = SummaryGroup
         fields = ["id", "date", "group_index", "created_at", "summaries"]
