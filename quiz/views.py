@@ -35,7 +35,7 @@ class QuizCreateAPIView(APIView):
     def post(self, request, *args, **kwargs):
         """
         모든 유형의 퀴즈를 이 엔드포인트에서 생성합니다.
-        request body에 "quiz_type" 필드 (OX, SC, MC3, MC5)가 필수입니다.
+        request body에 "quiz_type" 필드 (OX, SC, MC4)가 필수입니다.
         """
         serializer = QuizCreateSerializer(data=request.data)
         if serializer.is_valid():

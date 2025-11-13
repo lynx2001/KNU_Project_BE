@@ -1,13 +1,17 @@
 from rest_framework import serializers
 from .models import Summary, SummaryGroup
 from article.serializers import ArticleSerializer
+from term.serializers import TermSerializer #term 추가
 
 class SummarySerializer(serializers.ModelSerializer):
     article = ArticleSerializer(read_only=True)
+
+    #term 필드 추가
+    terms = TermSerializer(many=True, read_only=True)
     
     class Meta:
         model = Summary
-        fields = ["id", "article", "title", "content"]
+        fields = ["id", "article", "title", "content", "terms"]
         read_only_fields = ["id"]
 
     def validate_title(self, value):

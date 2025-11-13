@@ -76,7 +76,7 @@ class MultipleChoiceQuizCreateSerializer(serializers.ModelSerializer):
 # --- 모든 퀴즈 생성 요청을 받아 분배하는 Serializer ---
 
 class QuizCreateSerializer(serializers.Serializer):
-    quiz_type = serializers.ChoiceField(choices=["OX", "SC", "MC3", "MC5"])
+    quiz_type = serializers.ChoiceField(choices=["OX", "SC", "MC4"]) # MC3, MC5 -> MC4
     
     # 모든 유형의 필드를 allow_null=True로 받음 (유효성 검사는 각자 시리얼라이저에서)
     summary = serializers.IntegerField() # 실제로는 PrimaryKeyRelatedField 등이 더 적합
@@ -95,7 +95,7 @@ class QuizCreateSerializer(serializers.Serializer):
         elif quiz_type == "SC":
             if not attrs.get('correct_answer_text'):
                 raise serializers.ValidationError("SC 유형은 correct_answer_text가 필요합니다.")
-        elif quiz_type in ("MC3", "MC5"):
+        elif quiz_type == "MC4": # MC3, MC5 -> MC4
             if not attrs.get('options'):
                 raise serializers.ValidationError("객관식 유형은 options가 필요합니다.")
 
@@ -118,12 +118,13 @@ class QuizCreateSerializer(serializers.Serializer):
                 "explanation": validated_data.get('explanation'),
                 "correct_answer": validated_data.get('correct_answer_text')
             })
-        elif quiz_type in ('MC3', 'MC5'):
+        # --- 여기 수정 ---
+        elif quiz_type == 'MC4': # MC3, MC5 -> MC4
             serializer = MultipleChoiceQuizCreateSerializer(data={
                 "summary": validated_data.get('summary'),
                 "question": validated_data.get('question'),
                 "explanation": validated_data.get('explanation'),
-                "choice_type": 3 if quiz_type == 'MC3' else 5,
+                "choice_type": 4, # choice_type을 4로 고정
                 "options": validated_data.get('options')
             })
         else:

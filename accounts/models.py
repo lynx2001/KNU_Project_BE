@@ -18,23 +18,22 @@ class Profile(models.Model):
     def grade(self):
         if self.score >= 10000:
             return "숲"
-        elif self.score >= 5000:
+        elif self.score >= 4000:
             return "나무"
-        elif self.score >= 2000:
-            return "새싹"
         elif self.score >= 1000:
-            return "씨앗"
+            return "새싹"
         else:
-            return "비회원"
+            return "씨앗"
+            
         
     def is_seed(self):
-        return self.score >= 1000
+        return (self.score >= 0 and self.score < 1000)
 
     def is_sprout(self):
-        return self.score >= 2000
+        return (self.score >= 1000 and self.score < 4000)
 
     def is_tree(self):
-        return self.score >= 5000
+        return (self.score >= 4000 and self.score < 10000)
 
     def is_forest(self):
         return self.score >= 10000

@@ -51,16 +51,16 @@ class ShortAnswerQuiz(BaseQuiz):
 
 
 class MultipleChoiceQuiz(BaseQuiz):
-    TYPE_MC3 = 3
-    TYPE_MC5 = 5
+    # --- 여기부터 수정 ---
+    TYPE_MC4 = 4 # MC3, MC5 대신 MC4 정의
     TYPE_CHOICES = [
-        (TYPE_MC3, "Multiple Choice (3)"),
-        (TYPE_MC5, "Multiple Choice (5)"),
+        (TYPE_MC4, "Multiple Choice (4)"), # 선택지를 MC4로 변경
     ]
     choice_type = models.PositiveSmallIntegerField(
         choices=TYPE_CHOICES,
-        default=TYPE_MC3
+        default=TYPE_MC4 # 기본값을 MC4로 변경
     )
+    # --- 여기까지 수정 ---
 
     class Meta:
         db_table = "quiz_multiple_choice"

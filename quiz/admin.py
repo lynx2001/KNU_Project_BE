@@ -8,7 +8,7 @@ from .models import (
 # --- 객관식 퀴즈 Admin에서 보기(Option)를 함께 편집하기 위한 Inline 설정 ---
 class QuizOptionInline(admin.TabularInline):
     model = QuizOption
-    extra = 3  # 기본으로 3개의 보기 입력 필드를 보여줌
+    extra = 4  # 4지선다로 수정
     ordering = ["order"]
 
 
@@ -16,7 +16,7 @@ class QuizOptionInline(admin.TabularInline):
 @admin.register(MultipleChoiceQuiz)
 class MultipleChoiceQuizAdmin(admin.ModelAdmin):
     list_display = ("id", "summary", "question_summary", "choice_type")
-    list_filter = ("summary", "choice_type")
+    list_filter = ("summary",)
     search_fields = ("question",)
     inlines = [QuizOptionInline] # 객관식 퀴즈 편집 페이지에만 Inline 추가
 

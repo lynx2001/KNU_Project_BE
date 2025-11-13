@@ -11,4 +11,4 @@ class SummaryGroupAdmin(admin.ModelAdmin):
 class SummaryAdmin(admin.ModelAdmin):
     list_display = ("id", "title", "group", "article")
     search_fields = ("title", "content")
-    fields = ("title", "content", "article", "group")
+    fields = ("title", "content", "article", "group", "terms")
