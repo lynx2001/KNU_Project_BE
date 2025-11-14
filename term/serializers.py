@@ -8,9 +8,3 @@ class TermSerializer(serializers.ModelSerializer):
         model = Term
         fields = ["term", "meaning"]
         read_only_fields = ["id"]
-
-#    def validate_title(self, value):
-#        if len(value.strip()) < 2:
-#            raise serializers.ValidationError("제목은 2자 이상이어야 합니다.")
-#        return value
-    

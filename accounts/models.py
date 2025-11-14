@@ -24,7 +24,6 @@ class Profile(models.Model):
             return "새싹"
         else:
             return "씨앗"
-            
         
     def is_seed(self):
         return (self.score >= 0 and self.score < 1000)
