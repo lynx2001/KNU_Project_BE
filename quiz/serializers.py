@@ -3,22 +3,46 @@ from .models import (
     OXQuiz, ShortAnswerQuiz, MultipleChoiceQuiz, QuizOption, UserQuizAnswer
 )
 
+# 사용자 퀴즈 답변 제출용 Serializer
+class QuizSubmitSerializer(serializers.Serializer):
+    """
+    사용자가 어떤 유형의 퀴즈에 답하든 이 Serializer로 받습니다.
+    """
+    # OX 퀴즈 답변용
+    ox_answer = serializers.BooleanField(required=False, allow_null=True)
+    
+    # 객관식 퀴즈 답변용 (제출한 QuizOption의 id)
+    selected_option_id = serializers.IntegerField(required=False, allow_null=True)
+    
+    # 단답형 퀴즈 답변용
+    text_answer = serializers.CharField(required=False, allow_blank=True, max_length=255)
+
+    def validate(self, attrs):
+        # 3가지 답변 유형 중 하나는 반드시 존재해야 함
+        if (
+            attrs.get('ox_answer') is None and
+            attrs.get('selected_option_id') is None and
+            attrs.get('text_answer') is None
+        ):
+            raise serializers.ValidationError("ox_answer, selected_option_id, text_answer 중 하나는 반드시 제공되어야 합니다.")
+        return attrs
+
 class QuizOptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = QuizOption
-        fields = ["id", "text", "order"]
+        fields = ["id", "text", "order", "is_correct"]
 
 class OXQuizSerializer(serializers.ModelSerializer):
     quiz_type = serializers.CharField(default="OX", read_only=True)
     class Meta:
         model = OXQuiz
-        fields = ["id", "summary", "question", "explanation", "quiz_type"]
+        fields = ["id", "summary", "question", "explanation", "quiz_type", "correct_answer"]
 
 class ShortAnswerQuizSerializer(serializers.ModelSerializer):
     quiz_type = serializers.CharField(default="SC", read_only=True)
     class Meta:
         model = ShortAnswerQuiz
-        fields = ["id", "summary", "question", "explanation", "quiz_type"]
+        fields = ["id", "summary", "question", "explanation", "quiz_type", "correct_answer"]
 
 class MultipleChoiceQuizSerializer(serializers.ModelSerializer):
     quiz_type = serializers.SerializerMethodField()
