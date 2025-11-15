@@ -6,7 +6,6 @@ from django.db.models import Q
 from summary.models import Summary
 
 
-# 1. 모든 퀴즈의 공통 부분을 담는 추상 기본 모델
 class BaseQuiz(models.Model):
     summary = models.ForeignKey(
         Summary,
@@ -22,13 +21,12 @@ class BaseQuiz(models.Model):
     explanation = models.TextField(blank=True)
 
     class Meta:
-        abstract = True # 이 모델은 DB 테이블로 만들어지지 않습니다.
+        abstract = True
 
     def __str__(self):
         return self.question[:50]
 
 
-# 2. 유형별 실제 모델들
 class OXQuiz(BaseQuiz):
     correct_answer = models.BooleanField(help_text="O=True, X=False")
 
