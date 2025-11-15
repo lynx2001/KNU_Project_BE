@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status, permissions
 from .serializers import UserSignupSerializer, UserProfileSerializer, ProfileSerializer, PasswordChangeSerializer, LogoutSerializer
 from django.contrib.auth import get_user_model
+from .models import Profile
 from typing import Dict, Any, cast
 
 User = get_user_model()
@@ -13,6 +14,7 @@ class UserSignupView(APIView):
     def post(self, request):
         serializer = UserSignupSerializer(data=request.data)
         if serializer.is_valid():
+
             user = serializer.save()
             # user_data = UserProfileSerializer(user).data
             return Response({"message": "회원가입 성공"}, status=status.HTTP_201_CREATED)
@@ -22,9 +24,21 @@ class UserSignupView(APIView):
 class ProfileView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
+    # def get(self, request):
+        # 디버깅용: 로그인만 확인
+        # return Response(
+        #     {
+        #         "id": request.user.id,
+        #         "username": request.user.username,
+        #         "email": request.user.email,
+        #     },
+        #     status=200,
+        # )
+
     def get(self, request):
         user = request.user
-        profile = request.user.profile
+        profile, _ = Profile.objects.get_or_create(user=user)
+        #profile = request.user.profile
 
         user_data = cast(Dict[str, Any], UserProfileSerializer(user).data)
         profile_data = cast(Dict[str, Any], ProfileSerializer(profile).data)
@@ -34,7 +48,9 @@ class ProfileView(APIView):
         return Response(merged, status=status.HTTP_200_OK)
     
     def patch(self, request):
-        profile = request.user.profile
+        user = request.user
+        #profile = request.user.profile
+        profile, _ = Profile.objects.get_or_create(user=user)
         serializer = ProfileSerializer(profile, data=request.data, partial=True)
 
         if serializer.is_valid():

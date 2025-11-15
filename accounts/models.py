@@ -9,7 +9,7 @@ class Profile(models.Model):
     )
     nickname = models.CharField(max_length=50, blank=True, null=True)
     phone_number = models.CharField(max_length=20, blank=True, null=True)
-    score = models.PositiveIntegerField(default=0)
+    score = models.PositiveIntegerField(default=-1)
 
     def __str__(self):
         return self.nickname or self.user.username

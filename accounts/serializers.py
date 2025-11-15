@@ -11,7 +11,8 @@ class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
 
-        fields = ["nickname", "phone_number", "score", "picture", "grade"]
+        fields = ["nickname", "phone_number", "score", "grade"]
+        #fields = ["nickname", "phone_number", "score", "picture", "grade"]
         read_only_fields = ["score", "grade"]
 
 class UserSignupSerializer(serializers.ModelSerializer):
@@ -27,6 +28,7 @@ class UserSignupSerializer(serializers.ModelSerializer):
             email = validated_data.get("email"),
             password=validated_data["password"]
         )
+        Profile.objects.create(user=user)
         return user
     
 class UserProfileSerializer(serializers.ModelSerializer):
