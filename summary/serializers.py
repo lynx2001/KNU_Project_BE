@@ -1,15 +1,21 @@
 from rest_framework import serializers
 from .models import Summary, SummaryGroup
 from article.models import Article
+from article.serializers import ArticleSerializer
 from term.models import Term
 from term.serializers import TermSerializer
 from django.utils import timezone
 from django.db.models import Max
 
 class SummarySerializer(serializers.ModelSerializer):
-    article = serializers.PrimaryKeyRelatedField(
+    article = ArticleSerializer(read_only=True)
+
+    article_id = serializers.PrimaryKeyRelatedField(
         queryset=Article.objects.all(),
-        allow_null=True
+        source="article",       # Summary.article 필드에 매핑
+        write_only=True,
+        allow_null=True,
+        required=False,
     )
 
     terms = TermSerializer(many=True, required=False)
@@ -21,7 +27,7 @@ class SummarySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Summary
-        fields = ["id", "article", "title", "content", "terms", "group"]
+        fields = ["id", "article", "article_id","title", "content", "terms", "group"]
         read_only_fields = ["id"]
 
     def validate_title(self, value):
