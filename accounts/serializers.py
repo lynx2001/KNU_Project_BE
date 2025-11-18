@@ -45,7 +45,7 @@ class PasswordChangeSerializer(serializers.Serializer):
         validators=[validate_password],
         label="새 비밀번호"
     )
-    new_password2 = serializers.CharField(required=True, write_only=True, label="새 비밀번호 확인")
+    #new_password2 = serializers.CharField(required=True, write_only=True, label="새 비밀번호 확인")
 
     def validate_old_password(self, value):
         user = self.context['request'].user
@@ -53,10 +53,10 @@ class PasswordChangeSerializer(serializers.Serializer):
             raise serializers.ValidationError("기존 비밀번호가 올바르지 않습니다.")
         return value
 
-    def validate(self, data):
-        if data.get('new_password') != data.get('new_password2'):
-            raise serializers.ValidationError({"new_password": "새 비밀번호가 일치하지 않습니다."})
-        return data
+    # def validate(self, data):
+    #     if data.get('new_password') != data.get('new_password2'):
+    #         raise serializers.ValidationError({"new_password": "새 비밀번호가 일치하지 않습니다."})
+    #     return data
 
     def save(self, **kwargs):
         data = cast(Dict[str, Any], self.validated_data)
