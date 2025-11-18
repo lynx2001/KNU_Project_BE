@@ -13,7 +13,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 
         fields = ["nickname", "phone_number", "score", "grade"]
         #fields = ["nickname", "phone_number", "score", "picture", "grade"]
-        read_only_fields = ["score", "grade"]
+        read_only_fields = ["grade"]
 
 class UserSignupSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
