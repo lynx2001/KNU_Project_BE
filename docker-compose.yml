@@ -26,11 +26,10 @@ services:
     container_name: econ_web
     command: >
       bash -c "python manage.py migrate &&
-               python manage.py runserver 0.0.0.0:8000"
+               gunicorn econAgent.wsgi:application --bind 0.0.0.0:8000"
     env_file:
       - .env
     environment:
-      # 장고 내부 분기용: settings.py에서 USE_MYSQL=true면 MySQL로 연결
       USE_MYSQL: "${USE_MYSQL}"
     volumes:
       - .:/app
@@ -40,6 +39,25 @@ services:
       db:
         condition: service_healthy
     restart: unless-stopped
+
+  scheduler:
+    build: .
+    container_name: econ_scheduler
+    command: >
+      bash -c "printenv | grep -v 'no_proxy' > /etc/environment && \
+               cp /app/scheduler.cron /etc/cron.d/scheduler_cron && \
+               chmod 0644 /etc/cron.d/scheduler_cron && \
+               touch /var/log/cron.log && \
+               cron -f"
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+        
 
 volumes:
   dbdata:

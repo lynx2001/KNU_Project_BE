@@ -7,8 +7,8 @@ class ArticleSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Article
-        fields = ["id", "title", "content", "author", "url", "journal", "created_at"]
-        read_only_fields = ["id"]
+        fields = ["id", "user", "title", "content", "author", "url", "journal", "created_at"]
+        read_only_fields = ["id", "user"]
 
     def validate_title(self, value):
         if len(value.strip()) < 2:

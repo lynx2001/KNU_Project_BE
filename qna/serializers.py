@@ -5,5 +5,5 @@ class QnASerializer(serializers.ModelSerializer):
     
     class Meta:
         model = QnA
-        fields = ["id", "question", "answer"]
-        read_only_fields = ["id"]
+        fields = ["id", "user", "question", "answer"]
+        read_only_fields = ["id", "user"]

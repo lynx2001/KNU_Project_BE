@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     "term",
     "accounts",
     "qna",
+    "multiAgent",
 ]
 
 MIDDLEWARE = [

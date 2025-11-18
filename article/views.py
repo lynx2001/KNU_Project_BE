@@ -4,6 +4,17 @@ from .models import Article
 from .serializers import ArticleSerializer
 
 class ArticleViewSet(viewsets.ModelViewSet):
+    def get_queryset(self):
+        user = self.request.user
+
+        if not user.is_authenticated:
+            return Article.objects.none()
+        
+        return Article.objects.filter(user=self.request.user).order_by("-id")
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
     queryset = Article.objects.all()
     serializer_class = ArticleSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
