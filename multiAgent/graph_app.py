@@ -1,14 +1,19 @@
 # graph_app.py
 from __future__ import annotations
 from typing import Annotated, List, Optional, TypedDict, Any, Dict
-from common import * # dotenv loader
+try:
+    from .common import * 
+    from .supervisor_router import classify_intent
+    from .agents import qa, news_find, news_summary, term_explain, quiz
+except ImportError:
+    # 혹시라도 단독 실행할 경우를 대비한 예외처리
+    from common import *
+    from supervisor_router import classify_intent
+    from agents import qa, news_find, news_summary, term_explain, quiz
+
 from langgraph.graph import StateGraph, START, END
 from langgraph.graph.message import add_messages
 from langchain_core.messages import AnyMessage, HumanMessage, AIMessage
-from supervisor_router import classify_intent
-
-# ====== 서브 에이전트 ======
-from agents import qa, news_find, news_summary, term_explain, quiz
 
 
 # ---------- 유틸 ----------
@@ -62,6 +67,8 @@ def supervisor_node(state: GraphState) -> dict:
     plan = state.get("plan", [])
     cursor = state.get("cursor", 0)
 
+    profile = _get_profile(state)
+
     # 3. 새로운 턴 감지
     last_msg = msgs[-1] if msgs else None
     is_new_turn = isinstance(last_msg, HumanMessage)
@@ -88,6 +95,7 @@ def supervisor_node(state: GraphState) -> dict:
         "last_agent": next_intent if next_intent != "end" else None,
         "loop_count": state.get("loop_count", 0) + 1,
         "current_intent": next_intent,
+        "profile": profile,
     }
     print("[DBG supervisor] RETURN keys:", list(out.keys()))
     return out

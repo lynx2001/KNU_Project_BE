@@ -214,7 +214,7 @@ def handle(user_text: str, profile: Optional[Dict[str, Any]] = None, state: Opti
             return qa_smalltalk(user_text)
 
         if mode == "internal":
-            level = (profile or {}).get("level", "beginner")
+            level = (profile or {}).get("grade", "beginner") # level -> grade
             ans = _internal_rag_answer(user_text, state or {}, level=level, force_pick=forced)
             if ans is not None:
                 return ans
@@ -222,7 +222,7 @@ def handle(user_text: str, profile: Optional[Dict[str, Any]] = None, state: Opti
 
         # WEB (default)
         results = _tavily_results(user_text, k=1)
-        level = (profile or {}).get("level", "beginner")
+        level = (profile or {}).get("grade", "beginner") # level -> grade
         return qa_web_summarize(user_text, results, level=level)
 
     except Exception as e:

@@ -376,7 +376,13 @@ def handle(text: str, profile: Optional[Dict[str, Any]] = None, state: Optional[
 
     ctx = (state or {}).get("context", {})
     profile = profile or (state or {}).get("profile", {}) or {}
-    level = profile.get("level", "새싹")
+    
+    if isinstance(profile, dict):
+        # 딕셔너리로 넘어온 경우 (현재 Django 환경)
+        level = profile.get("grade", "새싹")
+    else:
+        # 객체로 넘어온 경우 (기존 환경 호환)
+        level = getattr(profile, "grade", "새싹")
     
     intent_data = analyze_user_intent(text)
     action = intent_data.get("action")
@@ -501,7 +507,7 @@ def handle(text: str, profile: Optional[Dict[str, Any]] = None, state: Optional[
     if req_is_term:
         q_type_lbl = f"경제 용어 {q_type_lbl}"
 
-    msg = [f"[quiz] '{level}' 수준에 맞춰 **{q_type_lbl}**를 냈어요!\n"]
+    msg = [f"[quiz] **{q_type_lbl}**를 냈어요!\n"]
     msg.append(f"Q. {active_quiz_data['question']}\n")
     
     if active_quiz_data["type_str"] == "MultipleChoice4":

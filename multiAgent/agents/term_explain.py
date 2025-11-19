@@ -114,14 +114,15 @@ def explain_general(term: str, level: str) -> Dict:
         "숲": "전문가 수준의 깊이 있는 정의와 경제적 함의를 설명해줘."
     }.get(level, "쉽게 설명해줘.")
 
+    # ✅ [수정] 사용자가 문장으로 물어보더라도 핵심을 파악해 설명하도록 프롬프트 보강
     system_tmpl = (
-        "당신은 경제 용어 사전입니다. 사용자가 묻는 용어에 대해 "
-        "뉴스 문맥 없이도 이해할 수 있는 **일반적인 정의**를 내려주세요.\n"
+        "당신은 경제 용어 사전입니다. 사용자가 묻는 용어(또는 문장)에 대해 "
+        "뉴스 문맥 없이도 이해할 수 있는 **일반적인 경제적 정의**를 내려주세요.\n"
         f"난이도: {style_guide}\n\n"
         "반드시 JSON 형식으로 응답:\n"
         "{{\n"
-        "  \"term\": \"{term}\",\n"
-        "  \"definition\": \"설명내용(1~2문장)\"\n"
+        "  \"term\": \"설명한_핵심_용어\",\n"
+        "  \"definition\": \"설명내용(1~3문장)\"\n"
         "}}"
     )
     
@@ -129,7 +130,7 @@ def explain_general(term: str, level: str) -> Dict:
     
     try:
         msg = system_tmpl.format(term=term)
-        res = llm.invoke([("system", msg), ("human", "설명해줘")])
+        res = llm.invoke([("system", msg), ("human", f"질문: {term}")])
         return json.loads(res.content)
     except Exception as e:
         dprint(f"General explain error: {e}")
@@ -144,54 +145,71 @@ def handle(text: str, profile: Optional[Dict[str, Any]] = None, state: Optional[
 
     ctx = (state or {}).get("context", {})
     profile = profile or (state or {}).get("profile", {}) or {}
-    level = profile.get("level", "새싹")
     
+    if isinstance(profile, dict):
+        # 딕셔너리로 넘어온 경우 (현재 Django 환경)
+        level = profile.get("grade", "새싹")
+    else:
+        # 객체로 넘어온 경우 (기존 환경 호환)
+        level = getattr(profile, "grade", "새싹")
+    
+    # 1. 핵심 용어 추출 시도
     target_term = extract_user_target_term(text)
     dprint(f"User Target Term: {target_term}")
 
     summaries = ctx.get("summaries", [])
 
-    # CASE 1: 특정 용어 질문
-    if target_term:
+    # ✅ [수정] 요약문이 없는 경우에도 대응하기 위한 로직
+    # CASE 1: 특정 용어 질문 (혹은 추출 실패했으나 요약문도 없는 경우 -> 일반 질문으로 처리)
+    
+    # 추출된 용어가 있거나, (용어는 없는데 요약문도 없어서 일반 설명으로 넘겨야 할 때)
+    if target_term or (not summaries and text):
+        
+        # 추출 실패했으면 사용자 입력 전체를 '용어'로 취급 (LLM이 알아서 처리하도록)
+        search_term = target_term if target_term else text
+        dprint(f"Processing search_term: {search_term}")
+
+        # 1-1. (요약문이 있다면) 기사 컨텍스트 검색
         related_summary = None
-        for s in summaries:
-            content_blob = (s.get("title","") + s.get("summary_5sentences","") + " ".join(s.get("term_candidates",[])))
-            if target_term in content_blob:
-                related_summary = s
-                break
+        if summaries:
+            for s in summaries:
+                content_blob = (s.get("title","") + s.get("summary_5sentences","") + " ".join(s.get("term_candidates",[])))
+                if search_term in content_blob:
+                    related_summary = s
+                    break
         
         if related_summary:
             dprint(" -> Term found in context! Using Contextual Explanation.")
             explanations = explain_contextual(
                 related_summary.get("summary_5sentences", ""), 
-                [target_term], 
+                [search_term], 
                 level
             )
             if explanations:
                 defi = explanations[0].get("definition", "")
                 msg = (f"[term_explain] 이 용어는 방금 본 뉴스에 나오는 말이에요.\n\n"
-                       f"📖 **{target_term}** (문맥 정의)\n{defi}\n\n"
+                       f"📖 **{search_term}** (문맥 정의)\n{defi}\n\n"
                        f"(관련 기사: {related_summary.get('title')})")
                 return AIMessage(content=msg)
         
-        dprint(" -> Term NOT found in context. Using General Explanation.")
-        res = explain_general(target_term, level)
+        # 1-2. 기사에 없거나 기사 자체가 없으면 -> 일반 정의 설명
+        dprint(" -> Term NOT found in context (or no context). Using General Explanation.")
+        res = explain_general(search_term, level)
+        term_name = res.get("term", search_term)
         defi = res.get("definition", "")
-        msg = (f"[term_explain] 뉴스에는 없지만, '{level}' 수준으로 설명해 드릴게요.\n\n"
-               f"💡 **{target_term}** (일반 정의)\n{defi}")
+        
+        msg = (f"[term_explain] 설명해 드릴게요.\n\n"
+               f"💡 {term_name} (일반 정의)\n{defi}")
         return AIMessage(content=msg)
 
 
-    # CASE 2: 전체 설명 요청 (배치 함수 재사용 가능하지만, 여기선 직접 호출)
+    # CASE 2: 포괄적 요청 ("용어 설명해줘") + 요약문 있음
     dprint(" -> General request. Explaining all candidates in summaries.")
     if not summaries:
-        return AIMessage(content="[term_explain] 설명할 요약문이 없습니다. 뉴스 요약을 먼저 진행해주세요.")
+        # 위 로직에서 처리되었겠지만 안전장치
+        return AIMessage(content="[term_explain] 무엇을 설명해 드릴까요? 궁금한 용어를 말씀해 주세요.")
 
-    # 아래 배치 함수와 로직 동일
     all_explanations = build_daily_term_explanations({"context": ctx}, profile)
-    
-    # 컨텍스트 저장은 배치 함수 내부에서 summaries를 수정하므로 이미 반영됨
-    # 하지만 명시적으로 ctx 업데이트
     ctx["term_explanations"] = all_explanations
 
     msg_lines = [f"[term_explain] '{level}' 수준에 맞춰 주요 용어를 풀이했습니다.\n"]

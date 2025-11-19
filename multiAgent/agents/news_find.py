@@ -259,14 +259,40 @@ class SearchParams(BaseModel):
     reason: Optional[str] = Field(None, description="이유")
 
 def extract_search_params_llm(user_text: str) -> SearchParams:
-    sys_prompt = "한국어 입력에서 핵심 키워드(keyword)와 개수(k:1~5)를 뽑아 JSON으로 답하라."
+    sys_prompt = (
+        "사용자의 입력에서 뉴스 검색을 위한 '핵심 키워드(keyword)'와 '요청 개수(k)'를 추출하세요.\n"
+        "반드시 아래 JSON 포맷으로만 응답하세요. 코드블록이나 다른 말은 쓰지 마세요.\n\n"
+        "{\n"
+        '  "keyword": "검색어" (명확하지 않으면 null),\n'
+        '  "k": 숫자 (1~5 사이, 언급 없으면 1),\n'
+        '  "reason": "추출 근거"\n'
+        "}\n\n"
+        "예시:\n"
+        "- '삼성전자 기사 3개 찾아줘' -> {\"keyword\": \"삼성전자\", \"k\": 3, \"reason\": \"키워드 삼성전자, 3개 요청\"}\n"
+        "- '최근 경제 뉴스 보여줘' -> {\"keyword\": \"경제\", \"k\": 1, \"reason\": \"키워드 경제, 개수 미지정(기본값 1)\"}\n"
+        "- '요약해줘' -> {\"keyword\": null, \"k\": 1, \"reason\": \"검색 키워드 없음\"}"
+    )
     llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+    
     try:
         res = llm.invoke([("system", sys_prompt), ("user", user_text)])
+        text = res.content.strip()
+        
+        # ✅ [수정] 마크다운 코드 블록 제거 (```json ... ```)
+        if "```json" in text:
+            text = text.split("```json")[1].split("```")[0]
+        elif "```" in text:
+            text = text.split("```")[1].split("```")[0]
+            
         import json
-        parsed = json.loads(res.content)
+        parsed = json.loads(text)
+        if DEBUG:
+            print(f"[DBG params] LLM 추출 결과 -> 키워드: '{parsed.get('keyword')}', 개수: {parsed.get('k')}")
+            print(f"             이유: {parsed.get('reason')}")
         return SearchParams(**parsed)
-    except Exception:
+        
+    except Exception as e:
+        if DEBUG: print(f"[DBG] params extract failed: {e}") # 디버그용 로그 추가
         return SearchParams(keyword=None, k=1, reason="fallback")
 
 # ------------------------------------------------------------------------------
@@ -361,10 +387,9 @@ def handle_on_demand(user_text: str, state: Optional[Dict] = None, profile: Opti
         ctx["selected_articles"] = ctx_articles
         ctx["news_candidates"] = ctx_articles # UI용
 
-    lines = [f"[news_find] '{keyword or '최근'}' 관련 상위 {len(picks)}개 (본문 확보 완료)"]
+    lines = [f"[news_find] '{keyword or '최근'}' 관련 상위 {len(picks)}개"]
     for i, d in enumerate(picks, 1):
         lines.append(f"{i}. {d.title} ({d.source})\n   {d.url}")
-    lines.append("\n→ 요약을 원하시면 ‘n번 기사 요약해줘’ 또는 ‘모두 요약해줘’라고 말해 주세요.")
     
     return AIMessage(content="\n".join(lines))
 

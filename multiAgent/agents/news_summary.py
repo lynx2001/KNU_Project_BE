@@ -259,7 +259,13 @@ def handle(text: str, profile: Optional[Dict[str, Any]] = None, state: Optional[
     ctx = (state or {}).get("context", {})
     profile = profile or (state or {}).get("profile", {}) or {}
     
-    level = profile.get("level", "새싹")
+    if isinstance(profile, dict):
+        # 딕셔너리로 넘어온 경우 (현재 Django 환경)
+        level = profile.get("grade", "새싹")
+    else:
+        # 객체로 넘어온 경우 (기존 환경 호환)
+        level = getattr(profile, "grade", "새싹")
+        
     articles = ctx.get("selected_articles", [])
     
     dprint(f"Profile Level: {level}, Articles to summarize: {len(articles)}")
@@ -281,13 +287,15 @@ def handle(text: str, profile: Optional[Dict[str, Any]] = None, state: Optional[
     dprint(f"Saved {len(summaries)} summaries to context['summaries']")
 
     # 챗봇 응답 생성
-    msg_lines = [f"[news_summary] 총 {len(summaries)}건의 기사를 '{level}' 난이도로 요약했습니다.\n"]
+    msg_lines = [f"[news_summary] 총 {len(summaries)}건의 기사를 요약했습니다.\n"]
     for i, s in enumerate(summaries, 1):
         title = s.get("title", "무제")
+        url = s.get("url", "") # ✅ URL 가져오기
         summary = s.get("summary_5sentences", "")
         
-        # ✅ 전체 내용을 줄바꿈과 함께 깔끔하게 출력하도록 변경
         msg_lines.append(f"{i}. {title}")
+        if url: # ✅ URL이 있으면 출력
+            msg_lines.append(f"   🔗 {url}")
         msg_lines.append(f"   [요약] {summary}\n") 
     
     return AIMessage(content="\n".join(msg_lines))

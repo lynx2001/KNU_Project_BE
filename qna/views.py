@@ -1,8 +1,11 @@
 from django.shortcuts import render
 from rest_framework import viewsets, permissions, filters
 from .models import QnA
+from accounts.models import Profile
 from .serializers import QnASerializer
 from rest_framework.exceptions import PermissionDenied
+
+from multiAgent.services import run_agent
 
 class QnAViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
@@ -18,6 +21,11 @@ class QnAViewSet(viewsets.ModelViewSet):
         if not user.is_authenticated:
             raise PermissionDenied("로그인한 사용자만 QnA를 작성할 수 있습니다.")
         serializer.save(user=user)
+
+        question_text = serializer.validated_data.get('question')
+        ai_answer = run_agent(user, question_text)
+
+        serializer.save(user=user, answer=ai_answer)
 
     queryset = QnA.objects.all()
     serializer_class = QnASerializer

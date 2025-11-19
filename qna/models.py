@@ -9,8 +9,8 @@ class QnA(models.Model):
         related_name="qnas",
         null=True, blank=True # 임시 !!! 지우자
     )
-    question = models.TextField(null=False)
-    answer = models.TextField(null=True, blank=True)
+    question = models.TextField(null=False, help_text="사용자 질문")
+    answer = models.TextField(null=True, blank=True, help_text="AI 답변")
 
     class Meta:
         db_table = "qna"

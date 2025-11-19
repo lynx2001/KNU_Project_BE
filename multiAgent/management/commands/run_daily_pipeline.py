@@ -20,8 +20,6 @@ class Command(BaseCommand):
         print("🚀 데일리 파이프라인 (DB 연동 모드) 시작...")
 
         all_profiles = Profile.objects.filter(user__is_active=True)
-
-        all_profiles = Profile.objects.filter(user__is_active=True)
         if not all_profiles:
             self.stdout.write("❌ 처리할 사용자가 없습니다.")
             return
