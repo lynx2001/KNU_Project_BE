@@ -55,7 +55,7 @@ class Command(BaseCommand):
                             "author": art.get("source", "Unknown"),
                             "journal": art.get("source", "Unknown"),
                             "created_at": art.get("source", "2001-01-01 11:11:11.111000"),
-                            "user": profile.user 
+                            "user": profile.user
                         }
                     )
                     art["db_id"] = db_article.pk

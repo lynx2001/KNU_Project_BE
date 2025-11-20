@@ -22,11 +22,14 @@ class Profile(models.Model):
             return "나무"
         elif self.score >= 1000:
             return "새싹"
-        else:
+        elif self.score > 0:
             return "씨앗"
+        else:
+            return None
+    
         
     def is_seed(self):
-        return (self.score >= 0 and self.score < 1000)
+        return (self.score > 0 and self.score < 1000)
 
     def is_sprout(self):
         return (self.score >= 1000 and self.score < 4000)
