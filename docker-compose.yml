@@ -6,6 +6,7 @@ services:
     container_name: econ_db
     restart: unless-stopped
     environment:
+      TZ: Asia/Seoul
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
@@ -30,6 +31,7 @@ services:
     env_file:
       - .env
     environment:
+      TZ: Asia/Seoul
       USE_MYSQL: "${USE_MYSQL}"
     volumes:
       - .:/app
@@ -49,6 +51,8 @@ services:
                chmod 0644 /etc/cron.d/scheduler_cron && \
                touch /var/log/cron.log && \
                cron -f"
+    environment:
+      TZ: Asia/Seoul
     volumes:
       - .:/app
     env_file:
