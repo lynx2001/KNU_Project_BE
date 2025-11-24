@@ -20,6 +20,8 @@ class BaseQuiz(models.Model):
     question = models.TextField()
     explanation = models.TextField(blank=True)
 
+    flag = models.BooleanField(default=False)
+
     class Meta:
         abstract = True
 
