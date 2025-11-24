@@ -26,7 +26,7 @@ DEBUG = True
 ONDEMAND_PER_FEED_LIMIT = 50
 ONDEMAND_DAYS_BACK = 5
 
-PER_FEED_LIMIT = 5
+PER_FEED_LIMIT = 17
 FEEDS = [
     "https://www.hankyung.com/feed/economy",        # 한국경제
     "https://www.yna.co.kr/rss/economy.xml",        # 연합뉴스 (JTBC 대체)
