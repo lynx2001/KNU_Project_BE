@@ -25,6 +25,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework_simplejwt",
     "corsheaders",
+    "django_filters",
 
     # Local apps
     "article",
@@ -128,8 +129,11 @@ REST_FRAMEWORK = {
         # 운영에서 JWT 사용 시 simplejwt 추가 후 아래 주석 해제
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ],
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend'
+    ],
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
-    "PAGE_SIZE": 10,
+    "PAGE_SIZE": 1000,
 }
 
 # ── CORS (프론트 분리 시 도메인 맞춰 조정) ──

@@ -47,7 +47,7 @@ class Command(BaseCommand):
             
             for art in articles:
                 try:
-                    db_article, created = Article.objects.get_or_create(
+                    db_article = Article.objects.create(
                         url=art["url"], 
                         defaults={
                             "title": art["title"],
@@ -62,10 +62,10 @@ class Command(BaseCommand):
                     saved_articles.append(art)
                     saved_articles_orm.append(db_article)
 
-                    if created:
-                        self.stdout.write(self.style.SUCCESS(f"   -> 기사 저장 완료 (ID: {db_article.pk})"))
-                    else:
-                        self.stdout.write(f"   -> 기사 중복/조회 (ID: {db_article.pk})")
+                    # if created:
+                    #     self.stdout.write(self.style.SUCCESS(f"   -> 기사 저장 완료 (ID: {db_article.pk})"))
+                    # else:
+                    #     self.stdout.write(f"   -> 기사 중복/조회 (ID: {db_article.pk})")
                 except Exception as e:
                     self.stderr.write(f"   -> 기사 저장 DB 오류: {e}")
                     traceback.print_exc()
@@ -102,7 +102,7 @@ class Command(BaseCommand):
                 try:
                     with transaction.atomic():
 
-                        today = timezone.now().date()
+                        today = timezone.localdate()
         
                         last_index_data = SummaryGroup.objects.filter(date=today).aggregate(max_index=Max('group_index'))
                         last_index = last_index_data.get('max_index')

@@ -1,18 +1,17 @@
-# quiz/views.py
-
 from rest_framework import viewsets, permissions, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from django.db import transaction # db트랜잭션 추가
-from django.contrib.contenttypes.models import ContentType # (new) [신규 import]
-from django.shortcuts import get_object_or_404 # (new) [신규 import]
-from accounts.models import Profile # (new) [신규 import] 점수 반영용
+from django.db import transaction
+from django.contrib.contenttypes.models import ContentType
+from django.shortcuts import get_object_or_404
+from accounts.models import Profile
 from .models import OXQuiz, ShortAnswerQuiz, MultipleChoiceQuiz, QuizOption, UserQuizAnswer
 from .serializers import (
     OXQuizSerializer, ShortAnswerQuizSerializer, MultipleChoiceQuizSerializer,
     QuizCreateSerializer,
     QuizSubmitSerializer
 )
+from django_filters.rest_framework import DjangoFilterBackend
 
 # --- 유형별 조회/수정/삭제 ViewSets ---
 
@@ -20,16 +19,22 @@ class OXQuizViewSet(viewsets.ModelViewSet):
     queryset = OXQuiz.objects.all()
     serializer_class = OXQuizSerializer
     permission_classes = [permissions.AllowAny]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['summary']
 
 class ShortAnswerQuizViewSet(viewsets.ModelViewSet):
     queryset = ShortAnswerQuiz.objects.all()
     serializer_class = ShortAnswerQuizSerializer
     permission_classes = [permissions.AllowAny]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['summary']
 
 class MultipleChoiceQuizViewSet(viewsets.ModelViewSet):
     queryset = MultipleChoiceQuiz.objects.all()
     serializer_class = MultipleChoiceQuizSerializer
     permission_classes = [permissions.AllowAny]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['summary']
 
 
 # --- 통합 퀴즈 생성 API View ---
