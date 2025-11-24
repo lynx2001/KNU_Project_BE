@@ -36,13 +36,13 @@ class OXQuizSerializer(serializers.ModelSerializer):
     quiz_type = serializers.CharField(default="OX", read_only=True)
     class Meta:
         model = OXQuiz
-        fields = ["id", "summary", "question", "explanation", "quiz_type", "correct_answer"]
+        fields = ["id", "summary", "question", "explanation", "quiz_type", "correct_answer", "flag"]
 
 class ShortAnswerQuizSerializer(serializers.ModelSerializer):
     quiz_type = serializers.CharField(default="SC", read_only=True)
     class Meta:
         model = ShortAnswerQuiz
-        fields = ["id", "summary", "question", "explanation", "quiz_type", "correct_answer"]
+        fields = ["id", "summary", "question", "explanation", "quiz_type", "correct_answer", "flag"]
 
 class MultipleChoiceQuizSerializer(serializers.ModelSerializer):
     quiz_type = serializers.SerializerMethodField()
@@ -50,7 +50,7 @@ class MultipleChoiceQuizSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = MultipleChoiceQuiz
-        fields = ["id", "summary", "question", "explanation", "quiz_type", "options"]
+        fields = ["id", "summary", "question", "explanation", "quiz_type", "options", "flag"]
 
     def get_quiz_type(self, obj):
         return f"MC{obj.choice_type}"
