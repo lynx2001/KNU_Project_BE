@@ -49,14 +49,12 @@ class Command(BaseCommand):
                 try:
                     db_article = Article.objects.create(
                         url=art["url"], 
-                        defaults={
-                            "title": art["title"],
-                            "content": art.get("content", "")[:5000],
-                            "author": art.get("source", "Unknown"),
-                            "journal": art.get("source", "Unknown"),
-                            "created_at": art.get("source", "2001-01-01 11:11:11.111000"),
-                            "user": profile.user
-                        }
+                        title=art["title"],
+                        content=art.get("content", "")[:5000],
+                        author=art.get("source", "Unknown"),
+                        journal=art.get("source", "Unknown"),
+                        created_at=art.get("source", "2001-01-01 11:11:11.111000"),
+                        user=profile.user
                     )
                     art["db_id"] = db_article.pk
                     saved_articles.append(art)
