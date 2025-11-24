@@ -88,12 +88,57 @@ FEW_SHOT_EXAMPLES = {
             "term_candidates": ["환율", "수입물가", "무역수지", "위험회피"]
         }
     }],
+
+    "나무": [{
+        "input": "반도체 업황 개선 기대감으로 코스피가 상승했다는 뉴스 본문",
+        "output": {
+            "summary_sentences": (
+                "반도체 업황 회복 기대감과 외국인 순매수세에 힘입어 코스피가 상승했습니다. "
+                "최근 기업 이익 전망치도 빠르게 오르고 있습니다. "
+                "하지만 주가가 실적 개선 속도보다 너무 앞서간 것은 아닌지 밸류에이션 부담을 점검할 때입니다. "
+                "단기적으로 거래대금이 급증하는 등 일부 과열 신호도 나타나고 있습니다. "
+                "이에 변동성 관리를 위해 분할 매도 등의 전략을 고려해볼 수 있습니다. "
+                "특히 반도체 비중이 높은 포트폴리오는 글로벌 IT 수요 같은 거시 변수를 함께 모니터링해야 합니다. "
+                "이번 상승을 계기로 단기 모멘텀과 펀더멘털의 괴리를 분석하는 자세가 필요합니다."
+            ),
+            "key_points": [
+                "반도체 실적 상향과 외국인 수급이 지수 상승을 견인",
+                "밸류에이션과 이익 전망의 정합성 점검 필요",
+                "과열 신호 구간에서 분할 매매와 리스크 관리 전략 요구"
+            ],
+            "metrics": [
+                {"name": "KOSPI", "value": "+1% 내외 상승", "period": "당일"},
+                {"name": "반도체 업종 지수", "value": "상승", "period": "동일 기간"}
+            ],
+            "term_candidates": ["밸류에이션", "순매수", "모멘텀", "이익추정", "리스크관리"]
+        }
+    }],
+
+    "숲": [{
+        "input": "재정지출 확대와 긴축적 통화정책 병행에 대한 분석 기사 본문",
+        "output": {
+            "summary_sentences": (
+                "확장 재정과 긴축 통화라는 상충하는 정책 조합이 시장 불확실성을 키우고 있습니다. "
+                "국채 발행 확대와 높은 기준금리는 장기물 금리에 구조적인 상방 압력으로 작용합니다. "
+                "이는 기간 프리미엄의 재평가로 이어질 수 있습니다. "
+                "결과적으로 수익률 곡선의 형태 또한 변화할 가능성이 커졌습니다. "
+                "이에 기관 투자자들은 듀레이션 노출과 커브 포지셔닝을 더욱 세심하게 조정해야 합니다. "
+                "만약 재정 건전성 우려가 커지면 외국인 자금 유출과 통화가치 하락이 동반될 수 있습니다. "
+                "따라서 정책 조합의 신뢰도를 해석하며 자산 비중을 조절하는 것이 중요합니다."
+            ),
+            "key_points": [
+                "재정 확대와 통화 긴축 병행이 장기 금리 및 커브 구조에 영향",
+                "국채 공급 확대와 기간프리미엄 재평가 리스크 상존",
+                "정책 신뢰 약화 시 외국인 수급·통화가치에 연쇄적 파급 가능"
+            ],
+            "metrics": [
+                {"name": "10Y-2Y 스프레드", "value": "기사 기준 수치 사용", "period": "최근"},
+                {"name": "국채 발행 규모", "value": "증가", "period": "예산/발행 계획"}
+            ],
+            "term_candidates": ["재정정책", "통화정책", "수익률곡선", "기간프리미엄", "듀레이션", "크레딧스프레드"]
+        }
+    }],
 }
-
-# 기본값 폴백
-if "나무" not in FEW_SHOT_EXAMPLES: FEW_SHOT_EXAMPLES["나무"] = FEW_SHOT_EXAMPLES["새싹"]
-if "숲" not in FEW_SHOT_EXAMPLES: FEW_SHOT_EXAMPLES["숲"] = FEW_SHOT_EXAMPLES["새싹"]
-
 
 # ---------------------------
 # 2) 프롬프트 빌더
@@ -104,27 +149,27 @@ def build_summary_prompt(level: str, user_profile: Dict = None) -> ChatPromptTem
     # 레벨별 설정
     cfg = {
         "씨앗": {
-            "sent_avg": "15~18", "sent_max": 22,
+            "sent_avg": "25~30", "sent_max": 30,
             "jargon_max": 0, "tone": "일상어 위주, 평이·직설",
             "personalize_rules": ["유치원생이 알아 들을 수 있게 요약하라."]
         },
         "새싹": {
-            "sent_avg": "18~22", "sent_max": 26,
+            "sent_avg": "35~40", "sent_max": 40,
             "jargon_max": 1, "tone": "간결·실용, 필요시 쉬운 괄호 풀이",
             "personalize_rules": ["초등학생이 알아 들을 수 있게 요약하라."]
         },
         "나무": {
-            "sent_avg": "22~26", "sent_max": 30,
+            "sent_avg": "45~50", "sent_max": 50,
             "jargon_max": 3, "tone": "시장·수급 용어 허용, 과잉전문어 금지",
             "personalize_rules": ["경제학을 전공한 학부생이 알아 들을 수 있게 요약하라."]
         },
         "숲": {
-            "sent_avg": "26~30", "sent_max": 34,
+            "sent_avg": "55~60", "sent_max": 60,
             "jargon_max": 5, "tone": "정책·커브·프리미엄 등 고급 용어 허용",
             "personalize_rules": ["경제학 박사 혹은 교수가 알아 들을 수 있게 요약하라."]
         }
     }.get(level, { 
-        "sent_avg": "20", "sent_max": 25, "jargon_max": 2, "tone": "친절함", "personalize_rules": ["쉽게 설명하라"]
+        "sent_avg": "50", "sent_max": 50, "jargon_max": 2, "tone": "친절함", "personalize_rules": ["쉽게 설명하라"]
     })
 
     up = user_profile or {}
@@ -169,7 +214,8 @@ def build_summary_prompt(level: str, user_profile: Dict = None) -> ChatPromptTem
          "본문:\n{content}\n\n"
          "제약:\n"
          "1) 본문에 없는 수치·사실을 만들지 마세요.\n"
-         "2) JSON 외의 불필요한 텍스트를 절대 추가하지 마세요.")
+         "2) summary_sentences는 정확히 5문장, 총 450~550자 내외로 작성하세요.\n"
+         "3) JSON 외의 불필요한 텍스트를 절대 추가하지 마세요.")
     ])
 
     return system + fewshot + user_tmpl
