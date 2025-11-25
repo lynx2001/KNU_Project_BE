@@ -239,7 +239,7 @@ def summarize_one(article: Dict, level: str, user_profile: Dict) -> Dict:
     model = ChatOpenAI(
         model="gpt-4o-mini",
         temperature=0.2,
-        timeout=60,
+        timeout=300,
         model_kwargs={"response_format": {"type": "json_object"}},
     )
     parser = JsonOutputParser()
