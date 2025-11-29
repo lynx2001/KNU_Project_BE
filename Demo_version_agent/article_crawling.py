@@ -76,3 +76,59 @@ def select_final_articles_by_content(candidate_news: list, user_profile: dict) -
     except Exception as e:
         print(f"🔴 2단계 AI 선별 실패: {e}")
         return candidate_news[:3]
+
+def news_collection_pipeline():
+    """뉴스 수집부터 2단계 AI 큐레이션까지 전체 프로세스를 실행합니다."""
+
+    sample_user_profile = {
+        'level': '새싹',
+        'chat_history': ['미국 금리 인상', '환율 전망', '코스피 지수']
+    }
+
+    # [변경] feedparser를 사용하여 RSS 피드에서 뉴스 가져오기
+    print("📰 뉴스 수집 에이전트: 매일경제 RSS 피드에서 최신 뉴스를 수집합니다...")
+    rss_url = "https://www.mk.co.kr/rss/50200011/"
+    feed = feedparser.parse(rss_url)
+
+    # RSS 피드에서 제목과 URL을 추출하여 gnews와 동일한 형태로 가공
+    all_news = [{'title': entry.title, 'url': entry.link} for entry in feed.entries[:20]]
+
+    if not all_news:
+        print("🔴 RSS 피드에서 뉴스를 수집하지 못했습니다.")
+        return
+    print(f"✅ 뉴스 {len(all_news)}건 수집 완료.")
+
+    candidate_news = filter_candidates_by_title(all_news, sample_user_profile)
+
+    # [변경] 스크레이핑 로직을 '매일경제' 전용으로 단순화
+    print("\n🕸️ 후보 뉴스의 본문 스크레이핑을 시작합니다...")
+    for article in candidate_news:
+        try:
+            loader = WebBaseLoader(
+                web_paths=(article['url'],),
+                bs_kwargs=dict(parse_only=bs4.SoupStrainer("p", attrs={"refid": True})),
+                header_template={"User-Agent": "Mozilla/5.0"},
+            )
+            docs = loader.load()
+            content = docs[0].page_content if docs else "매일경제 뉴스 본문을 로드하지 못했습니다."
+        except Exception as e:
+            content = f"매일경제 뉴스 스크레이핑 중 오류: {e}"
+
+        article['content'] = content
+
+        print(f"\n--- [스크랩 내용 확인] {article['title']} ---")
+        print(content[:1500] + "...")
+        print(article['url'])
+        print("-" * 50)
+
+    print("✅ 모든 후보 뉴스의 본문 스크레이핑 완료.")
+
+    final_three_news = select_final_articles_by_content(candidate_news, sample_user_profile)
+
+    print("\n--- 🌟 최종 선별된 사용자 맞춤 뉴스 3선 🌟 ---")
+    for i, article in enumerate(final_three_news, 1):
+        print(f"  {i}. {article['title']}")
+        print(f"  - 본문: {article['content']}")
+        print(f"     - 링크: {article['url']}")
+    print("---------------------------------------------")
+    return final_three_news, sample_user_profile
