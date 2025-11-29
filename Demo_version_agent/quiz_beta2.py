@@ -133,3 +133,40 @@ def present_quiz(quiz_object):
     print(f"| 정답: {quiz_object.answer if not isinstance(quiz_object, OXQuiz) else ('O' if quiz_object.answer else 'X')}")
     print(f"| 해설: {quiz_object.rationale}")
     print("=" * 30 + "\n")
+
+if __name__ == "__main__":
+    
+    my_content = """
+    코스피가 반도체 주식의 강세로 3% 가까이 오르며 처음으로 4200선을 넘었습니다.
+    삼성전자와 SK하이닉스는 각각 11만원과 62만원을 기록하며 큰 폭으로 상승했습니다.
+    APEC 회의와 한중 정상회담 이후 반도체 주식에 대한 기대감이 커졌습니다.
+    개인과 기관 투자자는 주식을 많이 샀지만, 외국인 투자자는 팔았습니다.
+    앞으로도 반도체 관련 소식에 주목하면 좋겠습니다.
+    """
+
+    #mylevel = "씨앗"
+    #mylevel = "새싹"
+    #mylevel = "나무"
+    mylevel = "숲"
+
+    print("======= [입력 텍스트]로 퀴즈 자동 생성을 시작합니다. =======")
+
+    if mylevel == "씨앗":
+        print("...O/X 퀴즈 생성 중...")
+        ox_quiz = generate_quiz(my_content, "OX")
+        present_quiz(ox_quiz)
+
+    elif mylevel == "새싹":
+        print("...3지선다 퀴즈 생성 중...")
+        mc3_quiz = generate_quiz(my_content, "MC3")
+        present_quiz(mc3_quiz)
+
+    elif mylevel == "나무":
+        print("...5지선다 퀴즈 생성 중...")
+        mc5_quiz = generate_quiz(my_content, "MC5")
+        present_quiz(mc5_quiz)
+
+    elif mylevel == "숲":
+        print("단답형 퀴즈 생성 중...")
+        shortAnser_quiz = generate_quiz(my_content, "ShortAnswer")
+        present_quiz(shortAnser_quiz)
