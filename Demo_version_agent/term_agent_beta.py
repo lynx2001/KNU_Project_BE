@@ -18,3 +18,23 @@ os.environ["LANGCHAIN_API_KEY"] = os.getenv("LANGCHAIN_API_KEY")
 os.environ["TAVILY_API_KEY"] = os.getenv("TAVILY_API_KEY")
 
 FAKE_DB = {}
+
+class EconomicTerm(BaseModel):
+    term: str = Field(description="뉴스에서 추출한 핵심 경제 용어")
+
+class ExtractedTerms(BaseModel):
+    terms: List[EconomicTerm] = Field(description="추출된 경제 용어 목록")
+
+class TermAgentState(TypedDict):
+    input_text: str
+    extracted_terms: List[str]
+    current_term: Optional[str]
+    final_definitions: Dict[str, str]
+    _db_lookup_result: Optional[str]
+
+
+llm_extractor = ChatOpenAI(model="gpt-4o", temperature=0)
+llm_generator = ChatOpenAI(model="gpt-4o", temperature=0)
+
+search_tool = TavilySearch(max_results=3, search_depth="basic")
+tools = [search_tool]
