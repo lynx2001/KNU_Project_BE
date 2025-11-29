@@ -33,3 +33,16 @@ class ShortAnswer(BaseModel):
     question: str = Field(description="단답형 질문")
     answer: str = Field(description="정답 (단어 또는 짧은 구)")
     rationale: str = Field(description="정답에 대한 간단한 해설")
+
+prompt_template_text = """
+당신은 주어진 내용을 바탕으로 퀴즈를 출제하는 전문 교사입니다.
+제시된 {context} 내용을 기반으로, 학생들의 이해도를 평가할 수 있는 퀴즈를 생성해야 합니다.
+
+반드시 다음 지시사항을 따라주세요:
+1. 퀴즈 유형: {task}
+2. 출력 형식: 아래 {format_instructions} 에 명시된 JSON 형식을 철저히 준수해야 합니다.
+3. 해설 포함: 모든 문제에는 정답에 대한 간단한 해설(rationale)을 포함해야 합니다.
+
+[내용]
+{context}
+"""
