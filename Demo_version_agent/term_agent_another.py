@@ -86,3 +86,51 @@ prompt_explainer = ChatPromptTemplate.from_messages([
 ])
 
 explanation_chain = prompt_explainer | llm | StrOutputParser()
+
+
+def process_single_article(full_news_article: str) -> dict:
+    """
+    하나의 원본 뉴스 기사를 받아 [요약 -> 용어 추출 -> 용어 설명] 파이프라인을 실행합니다.
+    """
+    
+    print(f"\n--- [기사 처리 시작] ---")
+    
+    try:
+        # --- [Step 1] Chain 0: 기사 요약 ---
+        print("[1] 기사 요약 중...")
+        news_summary = summarization_chain.invoke({"full_news_article": full_news_article})
+        print(f"✅ 요약 완료: {news_summary[:50]}...")
+
+        # --- [Step 2] Chain 1: 용어 추출 ---
+        print("[2] 용어 추출 중...")
+        extracted_data = extraction_chain.invoke({"news_summary": news_summary})
+        print(f"✅ 용어 추출 완료: {', '.join([t.term for t in extracted_data.terms])}")
+
+        if not extracted_data.terms:
+            print("! 추출된 경제 용어가 없습니다.")
+            return {"summary": news_summary, "education_content": []}
+
+        # --- [Step 3] Chain 2: 용어 설명 ---
+        print("[3] 용어 설명 생성 중...")
+        final_education_content = []
+        for item in extracted_data.terms:
+            explanation = explanation_chain.invoke({
+                "term": item.term,
+                "context": news_summary  # 요약본을 문맥으로 제공
+            })
+            
+            final_education_content.append({
+                "term": item.term,
+                "explanation": explanation.strip() 
+            })
+        print("✅ 모든 용어 설명 완료")
+
+        # --- [Step 4] 결과 조합 ---
+        return {
+            "summary": news_summary,
+            "education_content": final_education_content
+        }
+
+    except Exception as e:
+        print(f"!! 기사 처리 중 오류 발생: {e}")
+        return {"summary": "처리 중 오류가 발생했습니다.", "education_content": []}
