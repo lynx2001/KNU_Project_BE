@@ -133,3 +133,15 @@ term_prompt_template_text = """
 [내용]
 {context}
 """
+
+def post_shuffle(quiz):
+    from copy import deepcopy
+    q = deepcopy(quiz)
+
+    if isinstance(q, MultipleChoice4):
+        idx = q.answer_index
+        correct = q.options[idx]
+        random.shuffle(q.options)
+        q.answer_index = q.options.index(correct)
+    return q
+
