@@ -58,3 +58,21 @@ def filter_candidates_by_title(news_list: list, user_profile: dict) -> list:
     except Exception as e:
         print(f"🔴 1단계 AI 필터링 실패: {e}")
         return news_list[:7]
+
+def select_final_articles_by_content(candidate_news: list, user_profile: dict) -> list:
+    # ... (기존 코드와 동일)
+    print("\n🤖 [2단계] AI가 스크랩한 본문을 기반으로 최종 뉴스를 선별합니다...")
+    formatted_candidates = "\n\n".join([f"기사 #{i+1}:\n- 제목: {article['title']}\n- 본문 일부: {article.get('content', '내용 없음')}" for i, article in enumerate(candidate_news)])
+    prompt = ChatPromptTemplate.from_template("""당신은 개인 맞춤형 경제 뉴스 큐레이터입니다. 사용자의 경제 지식 수준과 관심사를 고려하여, 아래 [후보 뉴스 목록]의 '본문'을 읽고 사용자에게 가장 유익하고 중요한 최종 기사 3개를 골라주세요. [사용자 정보] - 레벨: {level} - 최근 관심사: {chat_history} [후보 뉴스 목록 (제목과 본문)] {candidate_contents} [요청] 가장 적합한 최종 기사 3개의 번호('기사 #')를 JSON 형식으로 알려주세요. 예시: {{"final_indices": [2, 5, 1]}}""")
+    model = ChatOpenAI(model="gpt-4o", temperature=0)
+    parser = JsonOutputParser()
+    chain = prompt | model | parser
+    try:
+        response = chain.invoke({"level": user_profile['level'], "chat_history": ", ".join(user_profile['chat_history']), "candidate_contents": formatted_candidates})
+        final_indices = response['final_indices']
+        final_news = [candidate_news[i-1] for i in final_indices if 0 < i <= len(candidate_news)]
+        print(f"✅ 2단계 선별 완료. 최종 뉴스 3건 확정.")
+        return final_news
+    except Exception as e:
+        print(f"🔴 2단계 AI 선별 실패: {e}")
+        return candidate_news[:3]
