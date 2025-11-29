@@ -51,3 +51,20 @@ PROMPT_ADVANCED = PromptTemplate(
 심층 경제 분석 요약:""",
     input_variables=["text"]
 )
+
+llm = ChatOpenAI(model="gpt-4o", temperature=0)
+
+def get_summary_with_prompt(text_to_summarize: str, prompt: PromptTemplate):
+    """
+    주어진 프롬프트를 사용하여 텍스트를 요약하는 함수.
+    'Stuff' 전략은 텍스트 전체를 한번에 처리하는 가장 간단한 방식입니다.
+    """
+    # 텍스트를 LangChain이 처리할 수 있는 Document 형태로 만듭니다.
+    docs = [Document(page_content=text_to_summarize)]
+    
+    # 요약 체인(Chain)을 생성합니다. llm과 프롬프트를 지정합니다.
+    chain = load_summarize_chain(llm, chain_type="stuff", prompt=prompt)
+    
+    # 체인을 실행하고 결과에서 'output_text'만 추출하여 반환합니다.
+    summary = chain.invoke({"input_documents": docs})['output_text']
+    return summary.strip()
