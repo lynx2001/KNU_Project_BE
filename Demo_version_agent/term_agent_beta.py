@@ -156,3 +156,57 @@ def update_db_mock(state: TermAgentState) -> Dict:
     
     return {} # 상태 변경 없음
 
+
+def should_continue(state: TermAgentState) -> str:
+    """[엣지 1] 처리할 용어가 더 있는지 (current_term) 확인합니다."""
+    if state['current_term'] is None:
+        print("\n--- [루프 종료] 모든 용어 처리 완료 ---")
+        return END
+    else:
+        return "continue_processing" 
+
+def route_after_db_check(state: TermAgentState) -> str:
+    """[엣지 2] DB 조회 결과(Cache Hit / Miss)에 따라 경로를 분기합니다."""
+    if state['_db_lookup_result']:
+        return "fetch_from_db"
+    else:
+        return "generate_new_definition" 
+
+
+workflow = StateGraph(TermAgentState)
+
+
+workflow.add_node("extract_terms", extract_terms)
+workflow.add_node("select_next_term", select_next_term) 
+workflow.add_node("check_vector_db_mock", check_vector_db_mock)
+workflow.add_node("generate_new_definition", generate_new_definition)
+workflow.add_node("fetch_from_db", fetch_from_db)
+workflow.add_node("update_db_mock", update_db_mock)
+
+workflow.set_entry_point("extract_terms")
+workflow.add_edge("extract_terms", "select_next_term")
+
+
+workflow.add_conditional_edges(
+    "select_next_term",
+    should_continue,
+    {
+        "continue_processing": "check_vector_db_mock", 
+        END: END
+    }
+)
+
+workflow.add_conditional_edges(
+    "check_vector_db_mock",
+    route_after_db_check,
+    {
+        "fetch_from_db": "fetch_from_db",
+        "generate_new_definition": "generate_new_definition"
+    }
+)
+
+workflow.add_edge("generate_new_definition", "update_db_mock")
+workflow.add_edge("update_db_mock", "select_next_term")
+workflow.add_edge("fetch_from_db", "select_next_term")
+
+app = workflow.compile()
