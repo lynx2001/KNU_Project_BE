@@ -134,3 +134,46 @@ def process_single_article(full_news_article: str) -> dict:
     except Exception as e:
         print(f"!! 기사 처리 중 오류 발생: {e}")
         return {"summary": "처리 중 오류가 발생했습니다.", "education_content": []}
+
+
+if __name__ == "__main__":
+    
+    # --- 백엔드에서 받아올 3개의 원본 뉴스 기사 (예시) ---
+    news_article_1 = """
+    (로이터=뉴스1) = 미국 연방준비제도(연준·Fed)가 2일(현지시간) 기준 금리를 5.25~5.50%로 동결했다. 
+    이는 지난해 9월 이후 7회 연속 동결이다. 제롬 파월 연준 의장은 기자회견에서 "인플레이션이 지난 1년간 
+    상당히 완화됐지만, 여전히 너무 높다"며 "인플레이션이 2% 목표를 향해 지속 가능하게 움직인다는 
+    더 큰 확신이 생길 때까지 금리 인하를 시작하는 것이 적절하지 않다"고 밝혔다. 
+    시장은 파월 의장의 발언을 '매파적'으로 해석하며 연내 금리 인하 기대감을 낮췄다.
+    """
+    
+    news_article_2 = """
+    (서울=연합뉴스) 코스피가 2일 외국인과 기관의 '쌍끌이' 매도세에 밀려 2,600선 아래로 하락 마감했다. 
+    이날 코스피 종가는 전 거래일보다 30.17포인트(1.15%) 내린 2,591.31로 집계됐다. 
+    미국발 금리 인하 지연 우려가 투자 심리를 위축시킨 것으로 풀이된다. 
+    특히 반도체 대장주인 삼성전자와 SK하이닉스가 동반 하락하며 지수 하락을 부추겼다. 
+    원·달러 환율은 전일 대비 5.4원 오른 1,380.5원에 마감하며 환율 불안정성도 커졌다.
+    """
+
+    news_article_3 = """
+    (뉴욕=AP/뉴시스) = 엔비디아가 시장 예상치를 뛰어넘는 1분기 실적을 발표하며 '어닝 서프라이즈'를 기록했다. 
+    매출은 전년 동기 대비 262% 증가한 260억 달러를 기록했으며, 특히 데이터센터 부문 매출이 
+    AI 붐에 힘입어 427% 급증했다. 실적 발표 후 엔비디아 주가는 시간 외 거래에서 7% 이상 급등했다. 
+    이러한 호실적은 AI 반도체 시장의 폭발적인 성장을 재확인시켜주었으며, 관련 기술주 랠리에 
+    대한 기대감을 키우고 있다.
+    """
+
+    list_of_news_articles = [news_article_1, news_article_2, news_article_3]
+    
+    all_results = []
+    
+    # 3개의 기사를 순차적으로 처리
+    for article in list_of_news_articles:
+        result_for_article = process_single_article(article)
+        all_results.append(result_for_article)
+    
+    print("\n\n" + "="*50)
+    print("--- [최종 API 응답 (JSON 예시)] ---")
+    print("="*50)
+    # indent=2는 예쁘게 출력하기 위함
+    print(json.dumps(all_results, indent=2, ensure_ascii=False))
