@@ -90,3 +90,46 @@ def generate_quiz(context: str, quiz_type: str):
     except Exception as e:
         print(f"퀴즈 생성 중 오류 발생: {e}")
         return None
+
+
+def present_quiz(quiz_object):
+    """
+    generate_quiz로 '자동 생성된' 퀴즈 객체를 받아
+    사용자에게 출제하고, 정답을 확인하고, 해설을 보여줍니다.
+    """
+    if not isinstance(quiz_object, (OXQuiz, MultipleChoice3, MultipleChoice5, ShortAnswer)):
+        print("퀴즈 객체가 올바르지 않아 출력할 수 없습니다.")
+        return
+
+    print("\n" + "=" * 30)
+    print(f"| 퀴즈: {quiz_object.question}")
+    print("=" * 30)
+
+    is_correct = False
+
+    
+    if isinstance(quiz_object, OXQuiz):
+        user_input = input("| 답 (O / X) : ").strip().upper()
+        user_answer = True if user_input == 'O' else (False if user_input == 'X' else None)
+        is_correct = (user_answer == quiz_object.answer)
+
+    
+    elif isinstance(quiz_object, (MultipleChoice3, MultipleChoice5)):
+        for i, option in enumerate(quiz_object.options):
+            print(f"  {i + 1}. {option}")
+        try:
+            user_input = int(input("| 답 (번호 입력) : ").strip())
+            is_correct = ((user_input - 1) == quiz_object.answer_index)
+        except ValueError:
+            is_correct = False
+
+    
+    elif isinstance(quiz_object, ShortAnswer):
+        user_input = input("| 답 (단답형) : ").strip()
+        is_correct = (user_input.replace(" ", "") == quiz_object.answer.replace(" ", ""))
+
+    print("-" * 30)
+    print(f"| 정답 여부: {'👍 정답입니다!' if is_correct else '😭 틀렸습니다.'}")
+    print(f"| 정답: {quiz_object.answer if not isinstance(quiz_object, OXQuiz) else ('O' if quiz_object.answer else 'X')}")
+    print(f"| 해설: {quiz_object.rationale}")
+    print("=" * 30 + "\n")
