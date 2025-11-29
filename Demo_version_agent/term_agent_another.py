@@ -49,10 +49,6 @@ prompt_summarizer = ChatPromptTemplate.from_template(summarization_prompt_templa
 summarization_chain = prompt_summarizer | llm | StrOutputParser()
 
 
-# ----------------------------------------------------
-# 4. Chain 1: 경제 용어 추출 체인
-# ----------------------------------------------------
-
 extraction_prompt_template = """
 당신은 유능한 경제 분석가입니다. 학생들을 교육할 목적으로 다음 뉴스 요약본에서 
 교육적으로 의미 있는 핵심 경제 용어를 3개에서 5개 사이로 추출해야 합니다.
@@ -65,9 +61,6 @@ prompt_extractor = ChatPromptTemplate.from_template(extraction_prompt_template)
 
 extraction_chain = prompt_extractor | llm.with_structured_output(ExtractedTerms)
 
-# ----------------------------------------------------
-# 5. Chain 2: 경제 용어 설명 체인
-# ----------------------------------------------------
 
 explanation_prompt_template = """
 당신은 친절한 경제 선생님입니다. 다음 경제 용어에 대해 학생이 이해하기 쉽게 설명해주세요.
@@ -96,36 +89,32 @@ def process_single_article(full_news_article: str) -> dict:
     print(f"\n--- [기사 처리 시작] ---")
     
     try:
-        # --- [Step 1] Chain 0: 기사 요약 ---
         print("[1] 기사 요약 중...")
         news_summary = summarization_chain.invoke({"full_news_article": full_news_article})
-        print(f"✅ 요약 완료: {news_summary[:50]}...")
+        print(f" 요약 완료: {news_summary[:50]}...")
 
-        # --- [Step 2] Chain 1: 용어 추출 ---
         print("[2] 용어 추출 중...")
         extracted_data = extraction_chain.invoke({"news_summary": news_summary})
-        print(f"✅ 용어 추출 완료: {', '.join([t.term for t in extracted_data.terms])}")
+        print(f" 용어 추출 완료: {', '.join([t.term for t in extracted_data.terms])}")
 
         if not extracted_data.terms:
             print("! 추출된 경제 용어가 없습니다.")
             return {"summary": news_summary, "education_content": []}
 
-        # --- [Step 3] Chain 2: 용어 설명 ---
         print("[3] 용어 설명 생성 중...")
         final_education_content = []
         for item in extracted_data.terms:
             explanation = explanation_chain.invoke({
                 "term": item.term,
-                "context": news_summary  # 요약본을 문맥으로 제공
+                "context": news_summary  
             })
             
             final_education_content.append({
                 "term": item.term,
                 "explanation": explanation.strip() 
             })
-        print("✅ 모든 용어 설명 완료")
+        print(" 모든 용어 설명 완료")
 
-        # --- [Step 4] 결과 조합 ---
         return {
             "summary": news_summary,
             "education_content": final_education_content
@@ -138,7 +127,7 @@ def process_single_article(full_news_article: str) -> dict:
 
 if __name__ == "__main__":
     
-    # --- 백엔드에서 받아올 3개의 원본 뉴스 기사 (예시) ---
+    
     news_article_1 = """
     (로이터=뉴스1) = 미국 연방준비제도(연준·Fed)가 2일(현지시간) 기준 금리를 5.25~5.50%로 동결했다. 
     이는 지난해 9월 이후 7회 연속 동결이다. 제롬 파월 연준 의장은 기자회견에서 "인플레이션이 지난 1년간 
@@ -167,7 +156,6 @@ if __name__ == "__main__":
     
     all_results = []
     
-    # 3개의 기사를 순차적으로 처리
     for article in list_of_news_articles:
         result_for_article = process_single_article(article)
         all_results.append(result_for_article)
@@ -175,5 +163,5 @@ if __name__ == "__main__":
     print("\n\n" + "="*50)
     print("--- [최종 API 응답 (JSON 예시)] ---")
     print("="*50)
-    # indent=2는 예쁘게 출력하기 위함
+    
     print(json.dumps(all_results, indent=2, ensure_ascii=False))
