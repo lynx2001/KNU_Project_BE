@@ -205,3 +205,84 @@ def generate_quiz(context: str, quiz_type: str, is_term_quiz: bool = False):
     except Exception as e:
         print(f"퀴즈 생성 중 오류 발생: {e}")
         return None
+
+
+def present_quiz(quiz_object):
+    """
+    generate_quiz로 '자동 생성된' 퀴즈 객체를 받아
+    사용자에게 출제하고, 정답을 확인하고, 해설을 보여줍니다.
+    """
+    
+    if not isinstance(quiz_object, (OXQuiz, MultipleChoice4, ShortAnswer)):
+        print(f"퀴즈 객체가 올바르지 않아 출력할 수 없습니다.")
+        return
+
+    print("\n" + "="*30)
+    print(f"| 퀴즈: {quiz_object.question}")
+    print("="*30)
+    
+    is_correct = False
+    
+    # O/X 퀴즈
+    if isinstance(quiz_object, OXQuiz):
+        user_input = input("| 답 (O / X) : ").strip().upper()
+        user_answer = True if user_input == 'O' else (False if user_input == 'X' else None)
+        is_correct = (user_answer == quiz_object.answer)
+
+    # 객관식 퀴즈 (4)
+    elif isinstance(quiz_object, MultipleChoice4):
+        for i, option in enumerate(quiz_object.options):
+            print(f"  {i+1}. {option}")
+        try:
+            user_input = int(input("| 답 (번호 입력) : ").strip())
+            is_correct = ((user_input - 1) == quiz_object.answer_index)
+        except ValueError:
+            is_correct = False
+
+    # 단답형 퀴즈
+    elif isinstance(quiz_object, ShortAnswer):
+        user_input_raw = input("| 답 (단답형) : ").strip()
+        
+        user_norm = user_input_raw.lower().replace(" ", "")
+        
+        is_correct = False # 기본값을 False로
+        
+        for correct_answer in quiz_object.answer:
+            answer_norm = correct_answer.lower().replace(" ", "")
+            
+            if user_norm == answer_norm:
+                is_correct = True
+                break 
+            
+            try:
+                if len(user_norm) > len(answer_norm):
+                    longer_str, shorter_str = user_norm, answer_norm
+                else:
+                    longer_str, shorter_str = answer_norm, user_norm
+
+                if shorter_str in longer_str and (len(shorter_str) / len(longer_str)) >= 0.8:
+                    is_correct = True
+                    break # 정답을 찾았으므로 루프 종료
+                        
+            except ZeroDivisionError:
+                continue # 빈 문자열 비교는 무시
+            except Exception:
+                continue # 예외 발생 시 다음 정답으로
+    print("-" * 30)
+    print(f"| 정답 여부: {' 정답입니다!' if is_correct else ' 틀렸습니다.'}")
+
+    correct_answer_str = ""
+    if isinstance(quiz_object, OXQuiz):
+        # O/X 퀴즈: 'O' 또는 'X'
+        correct_answer_str = 'O' if quiz_object.answer else 'X'
+    elif isinstance(quiz_object, MultipleChoice4):
+        try:
+            correct_answer_str = f"{quiz_object.answer_index + 1}. {quiz_object.options[quiz_object.answer_index]}"
+        except IndexError:
+            correct_answer_str = "[오류: 정답 인덱스가 범위를 벗어났습니다]"
+    elif isinstance(quiz_object, ShortAnswer):
+        correct_answer_str = ", ".join(quiz_object.answer)
+    
+    print(f"| 정답: {correct_answer_str}")
+    print(f"| 해설: {quiz_object.rationale}")
+    print("="*30 + "\n")
