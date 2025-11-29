@@ -62,3 +62,37 @@ def extract_terms(state: TermAgentState) -> Dict:
     except Exception as e:
         print(f"!! 용어 추출 실패: {e}")
         return {"extracted_terms": [], "final_definitions": {}}
+
+
+def select_next_term(state: TermAgentState) -> Dict:
+    """[노드 2 - 신규] 처리할 다음 용어를 선택하고 상태를 업데이트합니다."""
+    print(f"--- [Node 2] 다음 용어 선택 ---")
+    terms_list = state.get("extracted_terms", [])
+    
+    if not terms_list:
+        print("  [Log] 처리할 용어가 더 없습니다.")
+        return {"current_term": None} 
+
+    
+    current_term = terms_list.pop(0)
+    print(f"  [Log] 다음 용어 처리: {current_term}")
+    
+    
+    return {
+        "current_term": current_term,
+        "extracted_terms": terms_list 
+    }
+
+def check_vector_db_mock(state: TermAgentState) -> Dict:
+    """[노드 3] 용어가 Vector DB에 있는지 '시뮬레이션'합니다."""
+    print(f"--- [Node 3] DB 조회 시도 ---")
+    current_term = state['current_term'] 
+    
+    print(f"  [Log] '감독관'에게 '{current_term}' 용어 조회를 요청합니다...")
+    
+    if current_term in FAKE_DB:
+        print(f"  [Cache Hit] DB에서 '{current_term}'의 정의를 찾았습니다.")
+        return {"_db_lookup_result": FAKE_DB[current_term]}
+    else:
+        print(f"  [Cache Miss] DB에 '{current_term}'의 정의가 없습니다.")
+        return {"_db_lookup_result": None}
