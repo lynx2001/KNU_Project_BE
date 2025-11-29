@@ -96,3 +96,63 @@ def check_vector_db_mock(state: TermAgentState) -> Dict:
     else:
         print(f"  [Cache Miss] DB에 '{current_term}'의 정의가 없습니다.")
         return {"_db_lookup_result": None}
+    
+def generate_new_definition(state: TermAgentState) -> Dict:
+    """[노드 4 - Cache Miss] 웹 검색(Tool)을 사용하여 새 정의를 생성합니다."""
+    print(f"--- [Node 4] 새 정의 생성 (Web Search) ---")
+    term = state['current_term']
+    context = state['input_text']
+
+    prompt_template = ChatPromptTemplate.from_messages([
+        ("system", 
+         "당신은 경제 용어 사전입니다. 사용자가 요청한 경제 용어의 정의를 찾아야 합니다. \n"
+         "반드시 'tavily_search' 도구를 사용해 신뢰할 수 있는 정보를 검색하세요. \n"
+         "검색된 정보를 바탕으로, 해당 용어의 핵심 정의를 2~3문장으로 간결하게 요약/설명해 주세요. \n"
+         "문맥을 참고하여, 만약 여러 의미가 있다면 가장 관련성 높은 의미를 선택하세요."),
+        ("user", f"경제 용어: '{term}'\n\n참고 문맥:\n{context}")
+    ])
+    
+
+    tool_agent = create_openai_tools_agent(llm_generator, tools, prompt_template)
+    agent_executor = AgentExecutor(agent=tool_agent, tools=tools, verbose=False)
+    
+    try:
+        
+        response = agent_executor.invoke({"input": f"정의: {term}"})
+        new_definition = response['output']
+        
+        current_definitions = state['final_definitions']
+        current_definitions[term] = new_definition
+        
+        return {"final_definitions": current_definitions}
+    except Exception as e:
+        print(f"!! 정의 생성 실패: {e}")
+        current_definitions = state['final_definitions']
+        current_definitions[term] = "오류: 정의를 생성하지 못했습니다."
+        return {"final_definitions": current_definitions}
+
+def fetch_from_db(state: TermAgentState) -> Dict:
+    """[노드 5 - Cache Hit] DB에 용어가 있을 때, 조회된 결과를 가져옵니다."""
+    print(f"--- [Node 5] DB 정의 사용 ---")
+    term = state['current_term']
+    definition = state['_db_lookup_result']
+    
+    current_definitions = state['final_definitions']
+    current_definitions[term] = definition
+    
+    return {"final_definitions": current_definitions}
+
+def update_db_mock(state: TermAgentState) -> Dict:
+    """[노드 6 - Cache Miss 이후] 새로 생성된 정의를 DB에 저장(갱신)합니다."""
+    print(f"--- [Node 6] DB 갱신 시도 ---")
+    term = state['current_term']
+    new_definition = state['final_definitions'][term]
+    
+    print(f"  [Log] '감독관'에게 '{term}'의 새 정의 저장을 요청합니다...")
+    
+    if "오류" not in new_definition:
+        FAKE_DB[term] = new_definition
+        print(f"  [DB Updated] FAKE_DB가 '{term}'로 갱신되었습니다.")
+    
+    return {} # 상태 변경 없음
+
