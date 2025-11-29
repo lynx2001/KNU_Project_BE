@@ -49,3 +49,12 @@ def filter_candidates_by_title(news_list: list, user_profile: dict) -> list:
     model = ChatOpenAI(model="gpt-4o-mini", temperature=0)
     parser = JsonOutputParser()
     chain = prompt | model | parser
+    try:
+        response = chain.invoke({"level": user_profile['level'], "chat_history": ", ".join(user_profile['chat_history']), "news_titles": formatted_news_titles})
+        selected_indices = response['selected_indices']
+        candidate_news = [news_list[i-1] for i in selected_indices if 0 < i <= len(news_list)]
+        print(f"✅ 1단계 필터링 완료. 후보 뉴스 {len(candidate_news)}건 선택.")
+        return candidate_news
+    except Exception as e:
+        print(f"🔴 1단계 AI 필터링 실패: {e}")
+        return news_list[:7]
