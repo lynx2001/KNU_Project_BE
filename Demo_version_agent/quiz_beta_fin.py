@@ -324,3 +324,56 @@ def present_quizzes(quizzes):
     for i, q in enumerate(quizzes, 1):
         print(f"\n=== 문제 {i} ===")
         present_quiz(q)
+
+
+if __name__ == "__main__":
+    
+    
+    my_content = """
+    코스피가 배당소득 분리과세 세율 인하 추진 덕에 하루 만에 4073.24로 3.02% 상승하며 반등했습니다. 금융지주와 지주사 등 배당주가 큰 폭으로 상승했고, 삼성전자와 SK하이닉스도 주도주로서 강세를 보였습니다. 여야는 배당소득 분리과세 최고세율을 35%에서 25%로 인하하는 방안을 논의 중입니다. 이는 자본시장 활성화에 긍정적 영향을 미칠 것으로 기대됩니다. 금융지주사들은 주주환원 정책을 수정해 수혜를 보려는 움직임을 보이고 있습니다. 외국인은 1조3513억원어치를 순매도했으나 기관이 이를 소화하며 지수를 지탱했습니다. 정부는 세율 인하로 연간 최대 1900억원의 세수 감소를 예상하고 있습니다.
+    """
+    #mylevel = "씨앗"
+    #mylevel = "새싹"
+    #mylevel = "나무" 
+    mylevel = "숲"
+    
+    print(f"======= [입력 텍스트]로 퀴즈 자동 생성을 시작합니다. ({mylevel} 레벨) =======")
+    
+    target_quiz_type = None
+    if mylevel == "씨앗":
+        target_quiz_type = "OX"
+    elif mylevel == "새싹":
+        target_quiz_type = "MC4"
+    elif mylevel == "나무":
+        target_quiz_type = "MC4"
+    elif mylevel == "숲":
+        target_quiz_type = "ShortAnswer"
+        
+    
+    quizzes_to_present = []
+
+    if not target_quiz_type:
+        print(f"오류: '{mylevel}'에 해당하는 퀴즈 유형을 설정할 수 없습니다.")
+    else:
+        
+        print(f"...{mylevel} 레벨 '{target_quiz_type}' 유형 (내용 문제) 1개 생성 중...")
+        content_quiz = pick_one_quiz(my_content, target_quiz_type, k=4, is_term_quiz=False)
+        
+        if content_quiz:
+            quizzes_to_present.append(content_quiz)
+        else:
+            print("...내용 퀴즈 생성에 실패했습니다.")
+
+        print(f"...{mylevel} 레벨 '{target_quiz_type}' 유형 (경제 용어 문제) 1개 생성 중...")
+        term_quiz = pick_one_quiz(my_content, target_quiz_type, k=4, is_term_quiz=True)
+        
+        if term_quiz:
+            if not any(q.question == term_quiz.question for q in quizzes_to_present):
+                quizzes_to_present.append(term_quiz)
+            else:
+                print("...생성된 용어 문제가 내용 문제와 중복되어 1개만 출제합니다.")
+                
+        if not term_quiz:
+            print("...경제 용어 퀴즈 생성에 실패했습니다.")
+
+    present_quizzes(quizzes_to_present)
