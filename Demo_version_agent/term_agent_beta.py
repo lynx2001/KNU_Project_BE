@@ -210,3 +210,40 @@ workflow.add_edge("update_db_mock", "select_next_term")
 workflow.add_edge("fetch_from_db", "select_next_term")
 
 app = workflow.compile()
+
+
+if __name__ == "__main__":
+    
+    news_article = """
+    (로이터=뉴스1) = 미국 연방준비제도(연준·Fed)가 2일(현지시간) 기준 금리를 5.25~5.50%로 동결했다. 
+    제롬 파월 연준 의장은 기자회견에서 "인플레이션이 지난 1년간 상당히 완화됐지만, 여전히 너무 높다"며 
+    "인플레이션이 2% 목표를 향해 지속 가능하게 움직인다는 더 큰 확신이 생길 때까지 
+    금리 인하를 시작하는 것이 적절하지 않다"고 밝혔다. 
+    시장은 파월 의장의 발언을 '매파적'으로 해석하며 연내 금리 인하 기대감을 낮췄다.
+    """
+    
+    print("="*50)
+    print("--- [에이전트 첫 번째 실행] (DB가 비어있음) ---")
+    print("="*50)
+    
+    inputs = {"input_text": news_article}
+    final_state = app.invoke(inputs)
+    
+    print("\n\n" + "="*50)
+    print("--- [최종 실행 결과 1] ---")
+    print(json.dumps(final_state['final_definitions'], indent=2, ensure_ascii=False))
+    
+    print("\n\n" + "="*50)
+    print("--- [현재 FAKE_DB 상태] ---")
+    print(json.dumps(FAKE_DB, indent=2, ensure_ascii=False))
+    print("="*50)
+
+    print("\n\n" + "="*50)
+    print("--- [에이전트 두 번째 실행] (DB가 채워져 있음) ---")
+    print("="*50)
+    
+    final_state_2 = app.invoke(inputs)
+    
+    print("\n\n" + "="*50)
+    print("--- [최종 실행 결과 2] ---")
+    print(json.dumps(final_state_2['final_definitions'], indent=2, ensure_ascii=False))
