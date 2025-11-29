@@ -286,3 +286,41 @@ def present_quiz(quiz_object):
     print(f"| 정답: {correct_answer_str}")
     print(f"| 해설: {quiz_object.rationale}")
     print("="*30 + "\n")
+
+
+def generate_quiz_candidates(context: str, quiz_type: str, k: int = 3, is_term_quiz: bool = False):
+    return [q for _ in range(k) if (q := generate_quiz(context, quiz_type, is_term_quiz=is_term_quiz))]
+
+def pick_one_quiz(context: str, quiz_type: str, k: int = 3, is_term_quiz: bool = False):
+    cands = generate_quiz_candidates(context, quiz_type, k, is_term_quiz=is_term_quiz)
+    def score(q):
+        rationale_len = len(getattr(q, "rationale", "") or "")
+        uniq_opts = len(set(getattr(q, "options", []) or []))
+        return rationale_len + uniq_opts
+    cands.sort(key=score, reverse=True)
+    return (random.choice(cands[:2]) if len(cands) >= 2 else (cands[0] if cands else None))
+
+def pick_many_quizzes(context: str, quiz_type: str, n: int = 2, k: int = 4, is_term_quiz: bool = False):
+    """후보 k개에서 뽑는 과정을 반복해 서로 다른 문제 n개 수집"""
+    quizzes, seen = [], set()
+    max_trials = n * 5
+    trials = 0
+    while len(quizzes) < n and trials < max_trials:
+        trials += 1
+        q = pick_one_quiz(context, quiz_type, k=k, is_term_quiz=is_term_quiz)
+        if not q:
+            continue
+        if q.question in seen:
+            continue
+        seen.add(q.question)
+        quizzes.append(q)
+    return quizzes
+
+def present_quizzes(quizzes):
+    """여러 문제를 순서대로 출제"""
+    if not quizzes:
+        print("출제할 퀴즈가 없습니다.")
+        return
+    for i, q in enumerate(quizzes, 1):
+        print(f"\n=== 문제 {i} ===")
+        present_quiz(q)
