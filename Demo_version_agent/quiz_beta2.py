@@ -46,3 +46,47 @@ prompt_template_text = """
 [내용]
 {context}
 """
+
+
+def generate_quiz(context: str, quiz_type: str):
+    """
+    주어진 내용(context)과 퀴즈 유형(quiz_type)에 따라 퀴즈를 '자동으로 생성'합니다.
+    """
+    model_class, task_description = None, None
+
+    if quiz_type == "OX":
+        model_class = OXQuiz
+        task_description = "O/X 퀴즈 1개"
+    elif quiz_type == "MC3":
+        model_class = MultipleChoice3
+        task_description = "3지선다 객관식 퀴즈 1개"
+    elif quiz_type == "MC5":
+        model_class = MultipleChoice5
+        task_description = "5지선다 객관식 퀴즈 1개"
+    elif quiz_type == "ShortAnswer":
+        model_class = ShortAnswer
+        task_description = "단답형 퀴즈 1개"
+    else:
+        print(f"오류: 지원하지 않는 퀴즈 유형입니다. ({quiz_type})")
+        return None
+
+    try:
+        parser = PydanticOutputParser(pydantic_object=model_class)
+        format_instructions = parser.get_format_instructions()
+
+        prompt = ChatPromptTemplate.from_template(
+            template=prompt_template_text,
+            partial_variables={"format_instructions": format_instructions}
+        )
+
+        chain = prompt | llm | parser
+
+        result = chain.invoke({
+            "context": context,
+            "task": task_description
+        })
+        return result
+
+    except Exception as e:
+        print(f"퀴즈 생성 중 오류 발생: {e}")
+        return None
