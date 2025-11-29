@@ -145,3 +145,63 @@ def post_shuffle(quiz):
         q.answer_index = q.options.index(correct)
     return q
 
+def generate_quiz(context: str, quiz_type: str, is_term_quiz: bool = False):
+    """
+    주어진 내용(context)과 퀴즈 유형(quiz_type)에 따라 퀴즈를 '자동으로 생성'합니다.
+    [수정됨]: is_term_quiz=True이면 '경제 용어' 프롬프트를 사용합니다.
+    """
+    
+    model_class, task_description = None, None
+    
+    if is_term_quiz:
+        selected_prompt_template = term_prompt_template_text
+        task_prefix = "경제 용어 " # 작업 설명에 추가
+    else:
+        selected_prompt_template = prompt_template_text
+        task_prefix = "" # 일반 퀴즈
+    
+    if quiz_type == "OX":
+        model_class = OXQuiz
+        task_description = f"{task_prefix}O/X 퀴즈 1개"
+    elif quiz_type == "MC4":
+        model_class = MultipleChoice4
+        task_description = f"{task_prefix}4지선다 객관식 퀴즈 1개"
+    elif quiz_type == "ShortAnswer":
+        model_class = ShortAnswer
+        task_description = f"{task_prefix}단답형 퀴즈 1개" 
+    else:
+        print(f"오류: 지원하지 않는 퀴즈 유형입니다. ({quiz_type})")
+        return None
+
+    try:
+        parser = PydanticOutputParser(pydantic_object=model_class)
+        format_instructions = parser.get_format_instructions()
+        
+        entropy = uuid.uuid4().hex  
+        variant = random.choice(QUIZ_STYLE_VARIANTS)
+
+        prompt = ChatPromptTemplate.from_template(
+            template=selected_prompt_template + "\n[DIVERSITY_KEY]\n{diversity}\n",
+            partial_variables={"format_instructions": format_instructions}
+        )
+        
+        chain = prompt | llm | parser
+        
+        
+        result = chain.invoke({
+            "context": context,
+            "task": task_description,
+            "diversity": entropy,      
+            "variant": variant,
+            "safe_rules": SAFE_RULES,
+        })
+        
+    
+        if not is_term_quiz or (isinstance(result, ShortAnswer)):
+             return post_shuffle(result)
+        else:
+             return result 
+        
+    except Exception as e:
+        print(f"퀴즈 생성 중 오류 발생: {e}")
+        return None
