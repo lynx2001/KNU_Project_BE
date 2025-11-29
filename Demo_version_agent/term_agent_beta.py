@@ -38,3 +38,27 @@ llm_generator = ChatOpenAI(model="gpt-4o", temperature=0)
 
 search_tool = TavilySearch(max_results=3, search_depth="basic")
 tools = [search_tool]
+
+def extract_terms(state: TermAgentState) -> Dict:
+    """[노드 1] 텍스트에서 용어를 추출합니다."""
+    print(f"--- [Node 1] 용어 추출 시작 ---")
+    input_text = state['input_text']
+    
+    prompt = ChatPromptTemplate.from_template(
+        "당신은 경제 분석가입니다. 다음 텍스트에서 교육적으로 의미 있는 핵심 경제 용어를 3~5개 추출하세요.\n\n"
+        "텍스트: {text}"
+    )
+    extraction_chain = prompt | llm_extractor.with_structured_output(ExtractedTerms)
+    
+    try:
+        result = extraction_chain.invoke({"text": input_text})
+        term_list = [t.term for t in result.terms]
+        print(f"추출 완료: {term_list}")
+        
+        return {
+            "extracted_terms": term_list,
+            "final_definitions": {}
+        }
+    except Exception as e:
+        print(f"!! 용어 추출 실패: {e}")
+        return {"extracted_terms": [], "final_definitions": {}}
