@@ -8,6 +8,8 @@ djangorestframework-simplejwt==5.3.1
 gunicorn
 django-filter
 
+drf-spectacular[sidecar]>=0.27.2
+
 # AI Agent
 langchain
 langgraph
